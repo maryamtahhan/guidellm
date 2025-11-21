@@ -8,6 +8,29 @@ GuideLLM is designed to work with OpenAI-compatible HTTP servers, enabling seaml
 
 GuideLLM supports OpenAI-compatible HTTP servers, which provide a standardized API for interacting with LLMs. This includes popular implementations such as [vLLM](https://github.com/vllm-project/vllm) and [Text Generation Inference (TGI)](https://github.com/huggingface/text-generation-inference). These servers allow GuideLLM to perform evaluations, benchmarks, and optimizations with minimal setup.
 
+### Supported Endpoints
+
+GuideLLM supports the following OpenAI-compatible API endpoints:
+
+- **Text Completions** (`/v1/completions`): Legacy text completion endpoint for prompt-based generation
+- **Chat Completions** (`/v1/chat/completions`): Chat-based completion endpoint for conversational interactions
+- **Embeddings** (`/v1/embeddings`): Text embedding endpoint for converting text into vector representations
+- **Audio Transcriptions** (`/v1/audio/transcriptions`): Audio-to-text transcription endpoint
+- **Audio Translations** (`/v1/audio/translations`): Audio translation endpoint
+
+Each endpoint can be benchmarked using the `--request-type` parameter. For example, to benchmark embeddings with concurrent requests:
+
+```bash
+guidellm benchmark \
+    --target "http://localhost:8000" \
+    --request-type embeddings \
+    --profile concurrent \
+    --rate 32 \
+    --max-requests 500 \
+    --data "prompt_tokens=256,output_tokens=1" \
+    --processor "BAAI/bge-small-en-v1.5"
+```
+
 ## Examples for Spinning Up Compatible Servers
 
 ### 1. vLLM
@@ -21,6 +44,29 @@ vllm serve "neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w4a16"
 ```
 
 For more information on starting a vLLM server, see the [vLLM Documentation](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html).
+
+#### vLLM with Embedding Models
+
+vLLM also supports embedding models. To start a vLLM server with an embedding model:
+
+```bash
+vllm serve "BAAI/bge-small-en-v1.5"
+```
+
+You can then benchmark the embeddings endpoint with concurrent requests:
+
+```bash
+guidellm benchmark \
+    --target "http://localhost:8000" \
+    --request-type embeddings \
+    --profile concurrent \
+    --rate 32 \
+    --max-requests 500 \
+    --data "prompt_tokens=256,output_tokens=1" \
+    --processor "BAAI/bge-small-en-v1.5"
+```
+
+For more details on embeddings benchmarking, see the [Embeddings Guide](./embeddings.md).
 
 ### 2. Text Generation Inference (TGI)
 

@@ -83,3 +83,94 @@ def test_cli_backend_args_header_removal(mock_benchmark_func, tmp_path: Path):
     backend_args = scenario.backend_kwargs
     expected_headers = {"Authorization": None, "Custom-Header": "Custom-Value"}
     assert backend_args["headers"] == expected_headers
+
+
+@pytest.mark.smoke
+@patch("guidellm.__main__.benchmark_generative_text")
+def test_cli_outputs_parameter_with_multiple_flags(mock_benchmark_func):
+    """
+    Tests that --outputs works correctly when specified with multiple flags.
+    This verifies the fix for Click's parameter source detection issue with
+    multiple=True and callbacks.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "benchmark",
+            "run",
+            "--target",
+            "http://dummy-target",
+            "--data",
+            "prompt_tokens=10,output_tokens=10",
+            "--max-requests",
+            "1",
+            "--profile",
+            "synchronous",
+            "--outputs",
+            "json",
+            "--outputs",
+            "csv",
+            "--outputs",
+            "html",
+        ],
+        catch_exceptions=False,
+    )
+
+    # Should not fail due to outputs being filtered out
+    assert result.exit_code == 0, result.output
+
+    # Verify the outputs parameter was passed correctly
+    mock_benchmark_func.assert_called_once()
+    call_args = mock_benchmark_func.call_args[1]
+    args = call_args["args"]
+
+    # The outputs should contain all three formats
+    assert "json" in args.outputs
+    assert "csv" in args.outputs
+    assert "html" in args.outputs
+    assert len(args.outputs) == 3
+
+
+@pytest.mark.smoke
+@patch("guidellm.__main__.benchmark_generative_text")
+def test_cli_outputs_parameter_space_separated(mock_benchmark_func):
+    """
+    Tests that --outputs works correctly with space-separated values.
+    This is the recommended syntax in the documentation.
+    """
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "benchmark",
+            "run",
+            "--target",
+            "http://dummy-target",
+            "--data",
+            "prompt_tokens=10,output_tokens=10",
+            "--max-requests",
+            "1",
+            "--profile",
+            "synchronous",
+            "--outputs",
+            "json",
+            "csv",
+            "html",
+        ],
+        catch_exceptions=False,
+    )
+
+    # Should not fail due to outputs being filtered out
+    assert result.exit_code == 0, result.output
+
+    # Verify the outputs parameter was passed correctly
+    mock_benchmark_func.assert_called_once()
+    call_args = mock_benchmark_func.call_args[1]
+    args = call_args["args"]
+
+    # The outputs should contain all three formats
+    assert "json" in args.outputs
+    assert "csv" in args.outputs
+    assert "html" in args.outputs
+    assert len(args.outputs) == 3

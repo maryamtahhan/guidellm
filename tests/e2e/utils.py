@@ -112,9 +112,14 @@ class GuidellmClient:
                 f'--data "{data}"',
                 f'--processor "{processor}"',
                 f"--output-dir {self.output_dir}",
-                f"--outputs {self.outputs}",
             ]
         )
+
+        # Handle multiple outputs (comma-separated string or single output)
+        if self.outputs:
+            outputs_list = [o.strip() for o in self.outputs.split(',')]
+            for output in outputs_list:
+                cmd_parts.append(f"--outputs {output}")
 
         if additional_args:
             cmd_parts.append(additional_args)

@@ -405,8 +405,16 @@ def benchmark():
     help="Enable over-saturation detection with default settings.",
 )
 def run(**kwargs):  # noqa: C901
+    # Save outputs before filtering, as Click's parameter source detection
+    # doesn't work correctly with multiple=True and callbacks
+    outputs_value = kwargs.get("outputs")
+
     # Only set CLI args that differ from click defaults
     kwargs = cli_tools.set_if_not_default(click.get_current_context(), **kwargs)
+
+    # Restore outputs if it was filtered out
+    if outputs_value is not None and "outputs" not in kwargs:
+        kwargs["outputs"] = outputs_value
 
     # Handle remapping for request params
     request_type = kwargs.pop("request_type", None)

@@ -9,6 +9,7 @@ pytest.importorskip("mteb", reason="mteb required")
 from guidellm.benchmark.quality.mteb_integration import (
     DEFAULT_MTEB_TASKS,
     MTEBValidator,
+    RemoteMTEBValidator,
 )
 
 
@@ -219,3 +220,151 @@ class TestMTEBValidator:
         for task_name, score in results["mteb_task_scores"].items():
             assert isinstance(task_name, str)
             assert isinstance(score, int | float)
+
+
+class TestRemoteMTEBValidator:
+    """Tests for remote MTEB benchmark integration (OpenAI-compatible endpoints)."""
+
+    @pytest.mark.smoke
+    def test_initialization(self):
+        """Test remote validator initialization."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="test-model",
+            task_names=["STS12"],
+        )
+
+        assert validator is not None
+        assert validator.model_name == "test-model"
+        assert validator.base_url == "http://localhost:8000"
+        assert validator.task_names == ["STS12"]
+        assert validator.encoder is not None
+
+    @pytest.mark.smoke
+    def test_initialization_default_tasks(self):
+        """Test initialization with default MTEB tasks."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="test-model",
+        )
+
+        assert validator.task_names == DEFAULT_MTEB_TASKS
+
+    @pytest.mark.smoke
+    def test_initialization_strips_trailing_slash(self):
+        """Test that trailing slash is stripped from base_url."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000/",
+            model_name="test-model",
+        )
+
+        assert validator.base_url == "http://localhost:8000"
+
+    @pytest.mark.smoke
+    def test_initialization_custom_api_key(self):
+        """Test initialization with custom API key."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="test-model",
+            api_key="custom-key",
+        )
+
+        assert validator.api_key == "custom-key"
+
+    @pytest.mark.regression
+    def test_encoder_has_model_meta(self):
+        """Test that encoder has required mteb_model_meta attribute."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="test-model",
+        )
+
+        assert hasattr(validator.encoder, "mteb_model_meta")
+        assert validator.encoder.mteb_model_meta is not None
+
+    @pytest.mark.regression
+    def test_encoder_has_similarity_methods(self):
+        """Test that encoder has required similarity methods."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="test-model",
+        )
+
+        assert hasattr(validator.encoder, "similarity")
+        assert hasattr(validator.encoder, "similarity_pairwise")
+        assert callable(validator.encoder.similarity)
+        assert callable(validator.encoder.similarity_pairwise)
+
+    @pytest.mark.regression
+    def test_encoder_has_encode_method(self):
+        """Test that encoder has required encode method."""
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="test-model",
+        )
+
+        assert hasattr(validator.encoder, "encode")
+        assert callable(validator.encoder.encode)
+
+    @pytest.mark.smoke
+    def test_get_recommended_tasks(self):
+        """Test getting recommended tasks for a category."""
+        tasks = RemoteMTEBValidator.get_recommended_tasks("sts")
+
+        assert isinstance(tasks, list)
+        assert len(tasks) > 0
+        assert "STS12" in tasks or "STS13" in tasks
+
+    @pytest.mark.regression
+    def test_get_recommended_tasks_lightweight(self):
+        """Test getting lightweight recommended tasks."""
+        tasks = RemoteMTEBValidator.get_recommended_tasks("lightweight")
+
+        assert tasks == DEFAULT_MTEB_TASKS
+
+    @pytest.mark.slow
+    @pytest.mark.timeout(600)
+    @pytest.mark.skipif(
+        condition=True,  # Skip by default - requires live endpoint
+        reason="Requires live embedding endpoint - run manually with endpoint",
+    )
+    def test_run_evaluation_against_real_endpoint(self):
+        """
+        Test running MTEB evaluation against a real endpoint.
+
+        NOTE: This test is skipped by default. To run manually:
+        1. Start a vLLM embedding server (or compatible endpoint)
+        2. Update base_url and model_name below
+        3. Remove the skipif condition
+        4. Run: pytest -k test_run_evaluation_against_real_endpoint -v
+        """
+        pytest.importorskip("openai", reason="openai required for remote validation")
+
+        # Example configuration (update for your endpoint)
+        validator = RemoteMTEBValidator(
+            base_url="http://localhost:8000",
+            model_name="your-model-name",
+            task_names=["STS12"],  # Single task for faster testing
+        )
+
+        results = validator.run_evaluation()
+
+        assert isinstance(results, dict)
+        assert "mteb_main_score" in results
+        assert "mteb_task_scores" in results
+        assert "STS12" in results["mteb_task_scores"]
+        assert 0.0 <= results["mteb_main_score"] <= 100.0

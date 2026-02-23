@@ -385,11 +385,27 @@
             document.getElementById('performance-metrics').innerHTML = html;
         }
 
+        function getMtebTaskTypeLabel(taskName) {
+            const task = taskName.toUpperCase();
+            if (task.startsWith('STS') || task === 'SICK-R') {
+                return 'STS (Semantic Textual Similarity)';
+            }
+            if (task.startsWith('CLASSIFICATION')) return 'Classification';
+            if (task.startsWith('CLUSTERING')) return 'Clustering';
+            if (task.startsWith('RETRIEVAL')) return 'Retrieval';
+            if (task.startsWith('RERANKING')) return 'Reranking';
+            if (task.startsWith('PAIRCLASSIFICATION')) return 'Pair Classification';
+            if (task.startsWith('BITEXTMINING')) return 'Bitext Mining';
+            if (task.startsWith('SUMMARIZATION')) return 'Summarization';
+            return 'Quality Metrics';
+        }
+
         function renderQualityMetrics(benchmark) {
             if (!benchmark.quality) return;
 
             let html = '';
             let hasQuality = false;
+            let sectionTitle = 'Quality Metrics';
 
             if (benchmark.quality.cosineSimilarity && benchmark.quality.cosineSimilarity.median !== undefined) {
                 hasQuality = true;
@@ -413,11 +429,16 @@
                 `;
 
                 if (benchmark.quality.mtebTaskScores) {
+                    // Determine task type from first task
+                    const firstTask = Object.keys(benchmark.quality.mtebTaskScores)[0];
+                    const taskType = getMtebTaskTypeLabel(firstTask);
+                    sectionTitle = `Quality Metrics - ${taskType}`;
+
                     for (const [task, score] of Object.entries(benchmark.quality.mtebTaskScores)) {
                         const taskColor = score >= 80 ? '#48bb78' : score >= 70 ? '#4299e1' : '#ed8936';
                         html += `
                             <div class="metric-card quality">
-                                <div class="metric-label">MTEB ${task}</div>
+                                <div class="metric-label">MTEB ${task.toUpperCase()}</div>
                                 <div class="metric-value" style="color: ${taskColor};">${score.toFixed(2)}<span class="metric-unit">%</span></div>
                             </div>
                         `;
@@ -427,6 +448,7 @@
 
             if (hasQuality) {
                 document.getElementById('quality-section').style.display = 'block';
+                document.querySelector('#quality-section .section-title').textContent = sectionTitle;
                 document.getElementById('quality-metrics').innerHTML = html;
             }
         }

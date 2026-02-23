@@ -82,6 +82,20 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
 
         columns = ConsoleTableColumnsCollection()
 
+        # Determine task type from first benchmark
+        task_type_label = "MTEB Evaluation"
+        for benchmark in report.benchmarks:
+            if (
+                benchmark.metrics.quality
+                and benchmark.metrics.quality.mteb_task_scores
+            ):
+                # Get first task name to determine type
+                first_task = next(
+                    iter(benchmark.metrics.quality.mteb_task_scores.keys())
+                )
+                task_type_label = self._get_mteb_task_type_label(first_task)
+                break
+
         for benchmark in report.benchmarks:
             if not benchmark.metrics.quality:
                 continue
@@ -104,14 +118,43 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                     columns.add_value(
                         score * 100,
                         group="MTEB Tasks",
-                        name=task_name,
+                        name=task_name.upper(),
                         units="%",
                         precision=2,
                     )
 
         headers, values = columns.get_table_data()
         self.console.print("\n")
-        self.console.print_table(headers, values, title="MTEB Evaluation")
+        self.console.print_table(headers, values, title=task_type_label)
+
+    def _get_mteb_task_type_label(self, task_name: str) -> str:
+        """
+        Get human-readable MTEB task type label from task name.
+
+        :param task_name: MTEB task name (e.g., "sts12", "STS12")
+        :return: Human-readable task type label
+        """
+        task_upper = task_name.upper()
+
+        # Map task prefixes to human-readable types
+        if task_upper.startswith("STS") or task_upper == "SICK-R":
+            return "MTEB Evaluation - STS (Semantic Textual Similarity)"
+        if task_upper.startswith("CLASSIFICATION"):
+            return "MTEB Evaluation - Classification"
+        if task_upper.startswith("CLUSTERING"):
+            return "MTEB Evaluation - Clustering"
+        if task_upper.startswith("RETRIEVAL"):
+            return "MTEB Evaluation - Retrieval"
+        if task_upper.startswith("RERANKING"):
+            return "MTEB Evaluation - Reranking"
+        if task_upper.startswith("PAIRCLASSIFICATION"):
+            return "MTEB Evaluation - Pair Classification"
+        if task_upper.startswith("BITEXTMINING"):
+            return "MTEB Evaluation - Bitext Mining"
+        if task_upper.startswith("SUMMARIZATION"):
+            return "MTEB Evaluation - Summarization"
+
+        return "MTEB Evaluation"
 
     def print_run_summary_table(self, report: EmbeddingsBenchmarksReport):
         """
@@ -319,29 +362,8 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                         precision=4,
                     )
 
-                # MTEB scores (convert 0-1 range to percentages for display)
-                if benchmark.metrics.quality.mteb_main_score is not None:
-                    columns.add_value(
-                        benchmark.metrics.quality.mteb_main_score * 100,
-                        group="MTEB",
-                        name="Main",
-                        units="%",
-                        precision=2,
-                    )
-
-                # Individual MTEB task scores
-                if benchmark.metrics.quality.mteb_task_scores:
-                    for (
-                        task_name,
-                        score,
-                    ) in benchmark.metrics.quality.mteb_task_scores.items():
-                        columns.add_value(
-                            score * 100,
-                            group="MTEB Tasks",
-                            name=task_name,
-                            units="%",
-                            precision=2,
-                        )
+                # Note: MTEB scores are now displayed in the dedicated
+                # MTEB Evaluation table via print_mteb_results_table()
 
         headers, values = columns.get_table_data()
         self.console.print("\n")

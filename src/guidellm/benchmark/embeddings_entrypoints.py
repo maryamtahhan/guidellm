@@ -302,7 +302,15 @@ async def benchmark_embeddings(  # noqa: C901, PLR0912, PLR0915
     ):
         if benchmark:
             # Inject MTEB results if available
-            if mteb_results and benchmark.metrics.quality:
+            if mteb_results:
+                # Create quality metrics if needed
+                if benchmark.metrics.quality is None:
+                    from guidellm.benchmark.schemas.embeddings import (
+                        EmbeddingsQualityMetrics,
+                    )
+
+                    benchmark.metrics.quality = EmbeddingsQualityMetrics()
+
                 benchmark.metrics.quality.mteb_main_score = mteb_results[
                     "mteb_main_score"
                 ]

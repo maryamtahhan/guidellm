@@ -52,16 +52,66 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         Print the complete embeddings benchmark report to the console.
 
         Renders all metric tables including run summary, request counts, latency,
-        throughput, and quality metrics to the console.
+        throughput, MTEB results, and quality metrics to the console.
 
         :param report: The completed embeddings benchmark report
         :return: None (console output only)
         """
         self.print_run_summary_table(report)
+        self.print_mteb_results_table(report)
         self.print_request_counts_table(report)
         self.print_request_latency_table(report)
         self.print_server_throughput_table(report)
         self.print_quality_metrics_table(report)
+
+    def print_mteb_results_table(self, report: EmbeddingsBenchmarksReport):
+        """
+        Print MTEB evaluation results table if available.
+
+        :param report: The embeddings benchmark report
+        """
+        # Check if any benchmark has MTEB results
+        has_mteb = any(
+            benchmark.metrics.quality
+            and benchmark.metrics.quality.mteb_main_score is not None
+            for benchmark in report.benchmarks
+        )
+
+        if not has_mteb:
+            return
+
+        columns = ConsoleTableColumnsCollection()
+
+        for benchmark in report.benchmarks:
+            if not benchmark.metrics.quality:
+                continue
+
+            quality = benchmark.metrics.quality
+
+            # Add main score
+            if quality.mteb_main_score is not None:
+                columns.add_value(
+                    quality.mteb_main_score * 100,
+                    group="MTEB",
+                    name="Main Score",
+                    units="%",
+                    precision=2,
+                )
+
+            # Add individual task scores
+            if quality.mteb_task_scores:
+                for task_name, score in sorted(quality.mteb_task_scores.items()):
+                    columns.add_value(
+                        score * 100,
+                        group="MTEB Tasks",
+                        name=task_name,
+                        units="%",
+                        precision=2,
+                    )
+
+        headers, values = columns.get_table_data()
+        self.console.print("\n")
+        self.console.print_table(headers, values, title="MTEB Evaluation")
 
     def print_run_summary_table(self, report: EmbeddingsBenchmarksReport):
         """

@@ -60,13 +60,22 @@ class EmbeddingsHandler:
         self.config = config
         self.tokenizer = MockTokenizer()
 
-    async def handle(self, request: Request) -> HTTPResponse:
+    async def handle(
+        self, request: Request | EmbeddingsRequest
+    ) -> HTTPResponse | EmbeddingsResponse:
         """
         Process embeddings request and return response.
 
-        :param request: HTTP request containing embeddings parameters
-        :return: HTTP response with embeddings data or error
+        :param request: HTTP request containing embeddings parameters, or
+            EmbeddingsRequest pydantic model for direct testing
+        :return: HTTP response with embeddings data or error, or EmbeddingsResponse
+            pydantic model when called with EmbeddingsRequest directly
         """
+        # Handle direct pydantic model (for testing)
+        if isinstance(request, EmbeddingsRequest):
+            return await self._handle_pydantic(request)
+
+        # Handle HTTP request (production)
         try:
             # Parse request body
             req = EmbeddingsRequest(**request.json)
@@ -93,6 +102,16 @@ class EmbeddingsHandler:
                 status=400,
             )
 
+        # Process the parsed request
+        return await self._handle_http(req)
+
+    async def _handle_pydantic(self, req: EmbeddingsRequest) -> EmbeddingsResponse:
+        """
+        Process embeddings request from pydantic model (for testing).
+
+        :param req: Embeddings request as pydantic model
+        :return: Embeddings response as pydantic model
+        """
         # Handle input as list
         inputs = [req.input] if isinstance(req.input, str) else req.input
 
@@ -104,18 +123,9 @@ class EmbeddingsHandler:
         # Validate encoding format
         encoding_format = req.encoding_format or "float"
         if encoding_format not in {"float", "base64"}:
-            return response.json(
-                ErrorResponse(
-                    error=ErrorDetail(
-                        message=(
-                            f"Invalid encoding_format: {encoding_format}. "
-                            "Must be 'float' or 'base64'"
-                        ),
-                        type="invalid_request_error",
-                        code="invalid_encoding_format",
-                    )
-                ).model_dump(),
-                status=400,
+            raise ValueError(
+                f"Invalid encoding_format: {encoding_format}. "
+                "Must be 'float' or 'base64'"
             )
 
         # Count total tokens (for timing and usage)
@@ -167,18 +177,38 @@ class EmbeddingsHandler:
             completion_tokens=0,  # Embeddings don't generate tokens
         )
 
-        # Build response
-        embeddings_response = EmbeddingsResponse(
+        # Build and return response
+        return EmbeddingsResponse(
             data=embeddings_data,
             model=req.model,
             usage=usage,
         )
 
-        return HTTPResponse(
-            body=embeddings_response.model_dump_json(),
-            status=200,
-            headers={"Content-Type": "application/json"},
-        )
+    async def _handle_http(self, req: EmbeddingsRequest) -> HTTPResponse:
+        """
+        Process embeddings request and return HTTP response.
+
+        :param req: Embeddings request as pydantic model
+        :return: HTTP response with embeddings data
+        """
+        try:
+            embeddings_response = await self._handle_pydantic(req)
+            return HTTPResponse(
+                body=embeddings_response.model_dump_json(),
+                status=200,
+                headers={"Content-Type": "application/json"},
+            )
+        except ValueError as exc:
+            return response.json(
+                ErrorResponse(
+                    error=ErrorDetail(
+                        message=str(exc),
+                        type="invalid_request_error",
+                        code="invalid_encoding_format",
+                    )
+                ).model_dump(),
+                status=400,
+            )
 
     def _generate_embedding(self, dimensions: int) -> list[float]:
         """

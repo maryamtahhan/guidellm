@@ -111,13 +111,20 @@ async def benchmark_embeddings(  # noqa: C901, PLR0912, PLR0915
         report, outputs = await benchmark_embeddings(args)
     """
     # Resolve backend
+    # Add encoding_format to backend extras for embeddings requests
+    backend_kwargs = dict(args.backend_kwargs or {})
+    extras = backend_kwargs.get("extras", {})
+    if isinstance(extras, dict):
+        extras["encoding_format"] = args.encoding_format
+        backend_kwargs["extras"] = extras
+
     backend, model = await resolve_backend(
         backend=args.backend,
         target=args.target,
         model=args.model,
         request_format=args.request_format or "/v1/embeddings",
         console=console,
-        **(args.backend_kwargs or {}),
+        **backend_kwargs,
     )
 
     # Resolve processor (tokenizer)
@@ -249,7 +256,9 @@ async def benchmark_embeddings(  # noqa: C901, PLR0912, PLR0915
                 )
 
     # Create report
+    import time
     report = EmbeddingsBenchmarksReport(args=args)
+    report.metadata.start_time = time.time()
 
     if console:
         console.print_update(

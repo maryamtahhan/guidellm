@@ -10,6 +10,7 @@ metrics like cosine similarity.
 
 from __future__ import annotations
 
+import json
 import random
 from typing import Literal
 
@@ -630,15 +631,26 @@ class EmbeddingsBenchmarkAccumulator(
         )
         stats = EmbeddingsRequestStats(
             request_id=info.request_id,
+            response_id=response.response_id if response is not None else None,
+            request_args=response.request_args if response is not None else None,
             info=info,
             input_metrics=input_metrics,
         )
 
         # Track encoding format if available
-        if isinstance(request, GenerationRequest) and hasattr(
-            request, "encoding_format"
-        ):
-            format_key = request.encoding_format or "float"
+        # Try to get encoding_format from request args JSON
+        encoding_format = None
+        if response and response.request_args:
+            try:
+                request_args = json.loads(response.request_args)
+                if "body" in request_args and "encoding_format" in request_args["body"]:
+                    encoding_format = request_args["body"]["encoding_format"]
+            except Exception:  # noqa: BLE001
+                pass
+
+        if encoding_format:
+            format_key = encoding_format
+            stats.encoding_format = format_key
             self.encoding_format_breakdown[format_key] = (
                 self.encoding_format_breakdown.get(format_key, 0) + 1
             )

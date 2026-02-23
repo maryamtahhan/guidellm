@@ -79,11 +79,19 @@ class EmbeddingsMockServer:
             self.process.terminate()
             try:
                 self.process.wait(timeout=5)
+                logger.info("Embeddings mock server stopped.")
             except subprocess.TimeoutExpired:
-                logger.warning("Server did not terminate gracefully, killing it...")
+                logger.warning(
+                    "Server did not terminate gracefully, killing it..."
+                )
                 self.process.kill()
-                self.process.wait()
-            logger.info("Embeddings mock server stopped.")
+                try:
+                    self.process.wait(timeout=2)
+                    logger.info("Embeddings mock server killed.")
+                except subprocess.TimeoutExpired:
+                    logger.error(
+                        "Server did not stop even after kill signal"
+                    )
 
     def get_url(self) -> str:
         """Get the server URL."""
@@ -113,7 +121,7 @@ class EmbeddingsClient:
 
     def start_benchmark(
         self,
-        data: str = "Benchmark this text for embeddings quality",
+        data: str | list[str] = "Benchmark this text for embeddings quality",
         profile: str = "constant",
         rate: int = 10,
         max_requests: int | None = None,
@@ -128,12 +136,18 @@ class EmbeddingsClient:
         """Start embeddings benchmark command."""
         guidellm_exe = self.get_guidellm_executable()
 
+        # Handle data parameter - can be string or list
+        if isinstance(data, list):
+            data_args = " ".join(f"--data '{item}'" for item in data)
+        else:
+            data_args = f"--data '{data}'"
+
         # Build command components
         cmd_parts = [
             f"HF_HOME={self.output_dir / 'huggingface_cache'}",
             f"{guidellm_exe} benchmark embeddings",
             f"--target {self.target}",
-            f"--data '{data}'",
+            data_args,
             f"--profile {profile}",
             f"--rate {rate}",
             f"--encoding-format {encoding_format}",
@@ -295,7 +309,7 @@ def test_basic_embeddings_benchmark(
     )
 
     client.start_benchmark(
-        data=["Test embeddings benchmark"],
+        data="prompt_tokens=50",
         max_requests=10,
         processor="gpt2",
     )
@@ -344,7 +358,7 @@ def test_embeddings_float_encoding(
     )
 
     client.start_benchmark(
-        data=["Test float encoding"],
+        data="prompt_tokens=50",
         max_requests=5,
         encoding_format="float",
         processor="gpt2",
@@ -383,7 +397,7 @@ def test_embeddings_base64_encoding(
     )
 
     client.start_benchmark(
-        data=["Test base64 encoding"],
+        data="prompt_tokens=50",
         max_requests=5,
         encoding_format="base64",
         processor="gpt2",
@@ -419,7 +433,7 @@ def test_embeddings_csv_output(
     )
 
     client.start_benchmark(
-        data=["Test CSV output"],
+        data="prompt_tokens=50",
         max_requests=5,
         processor="gpt2",
     )
@@ -437,8 +451,10 @@ def test_embeddings_csv_output(
     # Validate CSV has content
     csv_content = csv_path.read_text()
     assert len(csv_content) > 0, "CSV file is empty"
-    assert "request_latency" in csv_content, "CSV missing request_latency column"
-    assert "prompt_tokens" in csv_content, "CSV missing prompt_tokens column"
+    # CSV uses "Latency (s)" as header, not "request_latency"
+    assert "Latency (s)" in csv_content, "CSV missing latency column"
+    # CSV uses "Input Tokens" as header, not "prompt_tokens"
+    assert "Input Tokens" in csv_content, "CSV missing input tokens column"
 
 
 @pytest.mark.timeout(60)
@@ -454,7 +470,7 @@ def test_embeddings_html_output(
     )
 
     client.start_benchmark(
-        data=["Test HTML output"],
+        data="prompt_tokens=50",
         max_requests=5,
         processor="gpt2",
     )
@@ -492,7 +508,7 @@ def test_embeddings_max_duration_constraint(
 
     # Run for 3 seconds at 5 requests/sec
     client.start_benchmark(
-        data=["Test max duration"],
+        data="prompt_tokens=50",
         rate=5,
         max_duration=3,
         processor="gpt2",
@@ -527,7 +543,7 @@ def test_embeddings_max_requests_constraint(
     )
 
     client.start_benchmark(
-        data=["Test max requests"],
+        data="prompt_tokens=50",
         max_requests=max_requests,
         processor="gpt2",
     )
@@ -561,7 +577,7 @@ def test_embeddings_report_metadata(
     )
 
     client.start_benchmark(
-        data=["Test metadata"],
+        data="prompt_tokens=50",
         max_requests=3,
         processor="gpt2",
     )

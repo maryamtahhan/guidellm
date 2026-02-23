@@ -51,6 +51,10 @@ class EmbeddingsBenchmarkMetadata(StandardBaseModel):
         description="Operating system platform where the benchmark was executed",
         default_factory=lambda: platform.platform(),
     )
+    start_time: float | None = Field(
+        description="Unix timestamp when the benchmark started",
+        default=None,
+    )
 
 
 class EmbeddingsBenchmarksReport(StandardBaseModel):

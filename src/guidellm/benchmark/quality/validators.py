@@ -74,6 +74,9 @@ def compute_cosine_similarity(
     dot_product = np.dot(vec1, vec2)
     cosine_sim = dot_product / (norm1 * norm2)
 
+    # Clamp to [-1, 1] to handle floating point precision errors
+    cosine_sim = np.clip(cosine_sim, -1.0, 1.0)
+
     return float(cosine_sim)
 
 

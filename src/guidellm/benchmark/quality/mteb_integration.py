@@ -88,9 +88,9 @@ class MTEBValidator:
         # Store mteb module reference
         self.mteb = mteb
 
-    def run_evaluation(  # noqa: C901
+    def run_evaluation(
         self,
-        output_folder: str | None = None,
+        output_folder: str | None = None,  # noqa: ARG002
         verbosity: int = 1,
     ) -> dict[str, Any]:
         """
@@ -99,7 +99,8 @@ class MTEBValidator:
         Executes MTEB benchmark tasks and computes standardized quality scores.
         Returns both individual task scores and an aggregated main score.
 
-        :param output_folder: Optional folder to save detailed results
+        :param output_folder: Optional folder to save detailed results (unused,
+            kept for API compatibility)
         :param verbosity: Verbosity level (0=silent, 1=progress, 2=detailed)
         :return: Dictionary with 'mteb_main_score' and 'mteb_task_scores'
 
@@ -117,48 +118,26 @@ class MTEBValidator:
         # Get MTEB task objects
         tasks = self.mteb.get_tasks(tasks=self.task_names)
 
-        # Create MTEB evaluation object
-        evaluation = self.mteb.MTEB(tasks=tasks)
-
-        # Run evaluation
-        results = evaluation.run(
+        # Run evaluation using modern mteb.evaluate() API
+        # Following vLLM's pattern from pooling_mteb_test/mteb_embed_utils.py
+        results = self.mteb.evaluate(
             self.model,
-            output_folder=output_folder,
-            verbosity=verbosity,
-            encode_kwargs={"batch_size": self.batch_size},
+            tasks,
+            cache=None,
+            show_progress_bar=(verbosity > 0),
         )
 
         # Extract scores from results
+        # mteb.evaluate() returns a list of TaskResult objects
         task_scores = {}
-        for task_name in self.task_names:
-            if task_name in results:
-                # MTEB results structure varies by task type
-                # Try to extract main_score or test score
-                task_result = results[task_name]
-
-                if isinstance(task_result, dict):
-                    # Look for main_score in various possible locations
-                    if "main_score" in task_result:
-                        task_scores[task_name] = float(task_result["main_score"])
-                    elif "test" in task_result and isinstance(
-                        task_result["test"], dict
-                    ):
-                        # Some tasks have test split with scores
-                        test_result = task_result["test"]
-                        if "main_score" in test_result:
-                            task_scores[task_name] = float(test_result["main_score"])
-                        elif "cosine_spearman" in test_result:
-                            # STS tasks use cosine_spearman as primary
-                            task_scores[task_name] = float(
-                                test_result["cosine_spearman"]
-                            )
-                    elif "scores" in task_result:
-                        # Fallback to scores field
-                        scores = task_result["scores"]
-                        if isinstance(scores, list) and scores:
-                            task_scores[task_name] = float(np.mean(scores))
-                        elif isinstance(scores, int | float):
-                            task_scores[task_name] = float(scores)
+        for task_result in results:
+            task_name = task_result.task_name
+            # Get main score from the test split
+            # Following vLLM's pattern: results[0].scores["test"][0]["main_score"]
+            if "test" in task_result.scores and task_result.scores["test"]:
+                test_scores = task_result.scores["test"][0]
+                if "main_score" in test_scores:
+                    task_scores[task_name] = float(test_scores["main_score"])
 
         # Compute main score as average across tasks
         main_score = float(np.mean(list(task_scores.values()))) if task_scores else 0.0

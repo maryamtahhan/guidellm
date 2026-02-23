@@ -35,6 +35,7 @@ class TestEmbeddingsHandler:
         assert handler.config is not None
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_handle_basic_request(self, handler):
         """Test handling a basic embeddings request."""
         request = EmbeddingsRequest(
@@ -50,6 +51,7 @@ class TestEmbeddingsHandler:
         assert response.model == "test-embedding-model"
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_handle_single_string_input(self, handler):
         """Test handling request with single string input."""
         request = EmbeddingsRequest(
@@ -64,6 +66,7 @@ class TestEmbeddingsHandler:
         assert response.data[0].object == "embedding"
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_handle_list_input(self, handler):
         """Test handling request with list of strings."""
         inputs = [
@@ -85,6 +88,7 @@ class TestEmbeddingsHandler:
             assert emb_obj.object == "embedding"
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_float_encoding(self, handler):
         """Test float encoding format (default)."""
         request = EmbeddingsRequest(
@@ -101,6 +105,7 @@ class TestEmbeddingsHandler:
         assert all(isinstance(x, float) for x in embedding)
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_base64_encoding(self, handler):
         """Test base64 encoding format."""
         request = EmbeddingsRequest(
@@ -123,6 +128,7 @@ class TestEmbeddingsHandler:
             pytest.fail("Invalid base64 encoding")
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_base64_encoding_decodes_to_floats(self, handler):
         """Test that base64 encoding can be decoded back to floats."""
         request = EmbeddingsRequest(
@@ -146,6 +152,7 @@ class TestEmbeddingsHandler:
         assert all(isinstance(x, float) for x in floats)
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_usage_metrics(self, handler):
         """Test that usage metrics are populated."""
         request = EmbeddingsRequest(
@@ -162,6 +169,7 @@ class TestEmbeddingsHandler:
         assert response.usage.completion_tokens == 0
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_usage_metrics_batch(self, handler):
         """Test usage metrics with batch input."""
         inputs = [
@@ -182,6 +190,7 @@ class TestEmbeddingsHandler:
         assert response.usage.total_tokens == response.usage.prompt_tokens
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_dimensions_parameter(self, handler):
         """Test dimensions parameter (Matryoshka embeddings)."""
         request = EmbeddingsRequest(
@@ -198,6 +207,7 @@ class TestEmbeddingsHandler:
         assert len(embedding) == 128
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_dimensions_default(self, handler):
         """Test default dimensions when not specified."""
         request = EmbeddingsRequest(
@@ -215,6 +225,7 @@ class TestEmbeddingsHandler:
         assert len(embedding) in [384, 512, 768, 1024, 1536]
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_truncate_prompt_tokens(self, handler):
         """Test truncate_prompt_tokens parameter."""
         request = EmbeddingsRequest(
@@ -229,6 +240,7 @@ class TestEmbeddingsHandler:
         assert response.usage.prompt_tokens <= 10
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_embedding_normalized(self, handler):
         """Test that embeddings are normalized (unit length)."""
         import math
@@ -248,6 +260,7 @@ class TestEmbeddingsHandler:
         assert norm == pytest.approx(1.0, abs=1e-6)
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_multiple_embeddings_different(self, handler):
         """Test that different inputs produce different embeddings."""
         request = EmbeddingsRequest(
@@ -265,6 +278,7 @@ class TestEmbeddingsHandler:
         assert emb1 != emb2
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_ttft_delay(self, handler_with_ttft):
         """Test that TTFT delay is applied."""
         import time
@@ -282,6 +296,7 @@ class TestEmbeddingsHandler:
         assert elapsed >= 0.05  # Reduced threshold for test reliability
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_empty_input(self, handler):
         """Test handling empty input string."""
         request = EmbeddingsRequest(
@@ -296,6 +311,7 @@ class TestEmbeddingsHandler:
         assert response.usage.prompt_tokens >= 0
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_response_model_matches_request(self, handler):
         """Test that response model matches request model."""
         model_name = "custom-embedding-model-v2"
@@ -309,6 +325,7 @@ class TestEmbeddingsHandler:
         assert response.model == model_name
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_embedding_object_fields(self, handler):
         """Test that embedding objects have correct fields."""
         request = EmbeddingsRequest(
@@ -325,6 +342,7 @@ class TestEmbeddingsHandler:
             assert emb_obj.object == "embedding"
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_large_batch_input(self, handler):
         """Test handling large batch of inputs."""
         inputs = [f"Sentence number {i}." for i in range(100)]
@@ -341,6 +359,7 @@ class TestEmbeddingsHandler:
             assert emb_obj.index == i
 
     @pytest.mark.regression
+    @pytest.mark.asyncio
     async def test_user_parameter(self, handler):
         """Test user parameter (should be accepted but not affect output)."""
         request = EmbeddingsRequest(
@@ -356,6 +375,7 @@ class TestEmbeddingsHandler:
         assert len(response.data) == 1
 
     @pytest.mark.sanity
+    @pytest.mark.asyncio
     async def test_response_object_field(self, handler):
         """Test that response object field is 'list'."""
         request = EmbeddingsRequest(

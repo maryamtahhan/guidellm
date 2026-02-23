@@ -187,10 +187,13 @@ class TestEmbeddingsQualityValidator:
         emb1 = validator.baseline_model.encode(text)
         emb2 = validator.baseline_model.encode(text)
 
-        consistency = validator.check_self_consistency(text, [emb1, emb2])
+        mean_similarity, is_consistent = validator.check_self_consistency(
+            text, [emb1, emb2]
+        )
 
         # Should be perfectly consistent
-        assert consistency == pytest.approx(1.0, abs=1e-6)
+        assert mean_similarity == pytest.approx(1.0, abs=1e-6)
+        assert is_consistent is True
 
     @pytest.mark.sanity
     def test_check_self_consistency_single_embedding(self, validator):
@@ -198,20 +201,22 @@ class TestEmbeddingsQualityValidator:
         text = "Single embedding test."
         emb = validator.baseline_model.encode(text)
 
-        consistency = validator.check_self_consistency(text, [emb])
+        mean_similarity, is_consistent = validator.check_self_consistency(text, [emb])
 
         # Single embedding should return 1.0 (perfectly consistent)
-        assert consistency == 1.0
+        assert mean_similarity == 1.0
+        assert is_consistent is True
 
     @pytest.mark.sanity
     def test_check_self_consistency_empty_list(self, validator):
         """Test self-consistency with empty embedding list."""
         text = "Empty list test."
 
-        consistency = validator.check_self_consistency(text, [])
+        mean_similarity, is_consistent = validator.check_self_consistency(text, [])
 
         # Empty list should return 1.0 (no inconsistency)
-        assert consistency == 1.0
+        assert mean_similarity == 1.0
+        assert is_consistent is True
 
     @pytest.mark.regression
     def test_check_self_consistency_multiple_embeddings(self, validator):
@@ -221,10 +226,13 @@ class TestEmbeddingsQualityValidator:
         # Generate same embedding multiple times
         embeddings = [validator.baseline_model.encode(text) for _ in range(5)]
 
-        consistency = validator.check_self_consistency(text, embeddings)
+        mean_similarity, is_consistent = validator.check_self_consistency(
+            text, embeddings
+        )
 
         # Should be highly consistent (model is deterministic)
-        assert consistency == pytest.approx(1.0, abs=1e-6)
+        assert mean_similarity == pytest.approx(1.0, abs=1e-6)
+        assert is_consistent is True
 
     @pytest.mark.regression
     def test_check_self_consistency_different_embeddings(self, validator):
@@ -239,10 +247,13 @@ class TestEmbeddingsQualityValidator:
         emb2 = rng.random(384)
         emb2 = emb2 / np.linalg.norm(emb2)
 
-        consistency = validator.check_self_consistency(text, [emb1, emb2])
+        mean_similarity, is_consistent = validator.check_self_consistency(
+            text, [emb1, emb2]
+        )
 
         # Should have low consistency
-        assert consistency < 0.5
+        assert mean_similarity < 0.5
+        assert is_consistent is False
 
     @pytest.mark.sanity
     def test_embedding_dimensions(self, validator):

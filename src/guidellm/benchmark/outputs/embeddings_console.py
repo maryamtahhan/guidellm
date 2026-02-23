@@ -52,109 +52,16 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         Print the complete embeddings benchmark report to the console.
 
         Renders all metric tables including run summary, request counts, latency,
-        throughput, MTEB results, and quality metrics to the console.
+        throughput, and quality metrics to the console.
 
         :param report: The completed embeddings benchmark report
         :return: None (console output only)
         """
         self.print_run_summary_table(report)
-        self.print_mteb_results_table(report)
         self.print_request_counts_table(report)
         self.print_request_latency_table(report)
         self.print_server_throughput_table(report)
         self.print_quality_metrics_table(report)
-
-    def print_mteb_results_table(self, report: EmbeddingsBenchmarksReport):
-        """
-        Print MTEB evaluation results table if available.
-
-        :param report: The embeddings benchmark report
-        """
-        # Check if any benchmark has MTEB results
-        has_mteb = any(
-            benchmark.metrics.quality
-            and benchmark.metrics.quality.mteb_main_score is not None
-            for benchmark in report.benchmarks
-        )
-
-        if not has_mteb:
-            return
-
-        columns = ConsoleTableColumnsCollection()
-
-        # Determine task type from first benchmark
-        task_type_label = "MTEB Evaluation"
-        for benchmark in report.benchmarks:
-            if (
-                benchmark.metrics.quality
-                and benchmark.metrics.quality.mteb_task_scores
-            ):
-                # Get first task name to determine type
-                first_task = next(
-                    iter(benchmark.metrics.quality.mteb_task_scores.keys())
-                )
-                task_type_label = self._get_mteb_task_type_label(first_task)
-                break
-
-        for benchmark in report.benchmarks:
-            if not benchmark.metrics.quality:
-                continue
-
-            quality = benchmark.metrics.quality
-
-            # Add main score
-            if quality.mteb_main_score is not None:
-                columns.add_value(
-                    quality.mteb_main_score * 100,
-                    group="MTEB",
-                    name="Main Score",
-                    units="%",
-                    precision=2,
-                )
-
-            # Add individual task scores
-            if quality.mteb_task_scores:
-                for task_name, score in sorted(quality.mteb_task_scores.items()):
-                    columns.add_value(
-                        score * 100,
-                        group="MTEB Tasks",
-                        name=task_name.upper(),
-                        units="%",
-                        precision=2,
-                    )
-
-        headers, values = columns.get_table_data()
-        self.console.print("\n")
-        self.console.print_table(headers, values, title=task_type_label)
-
-    def _get_mteb_task_type_label(self, task_name: str) -> str:
-        """
-        Get human-readable MTEB task type label from task name.
-
-        :param task_name: MTEB task name (e.g., "sts12", "STS12")
-        :return: Human-readable task type label
-        """
-        task_upper = task_name.upper()
-
-        # Map task prefixes to human-readable types
-        if task_upper.startswith("STS") or task_upper == "SICK-R":
-            return "MTEB Evaluation - STS (Semantic Textual Similarity)"
-        if task_upper.startswith("CLASSIFICATION"):
-            return "MTEB Evaluation - Classification"
-        if task_upper.startswith("CLUSTERING"):
-            return "MTEB Evaluation - Clustering"
-        if task_upper.startswith("RETRIEVAL"):
-            return "MTEB Evaluation - Retrieval"
-        if task_upper.startswith("RERANKING"):
-            return "MTEB Evaluation - Reranking"
-        if task_upper.startswith("PAIRCLASSIFICATION"):
-            return "MTEB Evaluation - Pair Classification"
-        if task_upper.startswith("BITEXTMINING"):
-            return "MTEB Evaluation - Bitext Mining"
-        if task_upper.startswith("SUMMARIZATION"):
-            return "MTEB Evaluation - Summarization"
-
-        return "MTEB Evaluation"
 
     def print_run_summary_table(self, report: EmbeddingsBenchmarksReport):
         """
@@ -331,6 +238,39 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         if not has_quality:
             return
 
+        # Determine task type label from first benchmark with MTEB scores
+        task_type_label = "Quality Metrics"
+        for benchmark in report.benchmarks:
+            if (
+                benchmark.metrics.quality
+                and benchmark.metrics.quality.mteb_task_scores
+            ):
+                # Get first task name to determine type
+                first_task = next(
+                    iter(benchmark.metrics.quality.mteb_task_scores.keys())
+                ).upper()
+
+                # Map task prefixes to human-readable types
+                if first_task.startswith("STS") or first_task == "SICK-R":
+                    task_type_label = (
+                        "Quality Metrics - STS (Semantic Textual Similarity)"
+                    )
+                elif first_task.startswith("CLASSIFICATION"):
+                    task_type_label = "Quality Metrics - Classification"
+                elif first_task.startswith("CLUSTERING"):
+                    task_type_label = "Quality Metrics - Clustering"
+                elif first_task.startswith("RETRIEVAL"):
+                    task_type_label = "Quality Metrics - Retrieval"
+                elif first_task.startswith("RERANKING"):
+                    task_type_label = "Quality Metrics - Reranking"
+                elif first_task.startswith("PAIRCLASSIFICATION"):
+                    task_type_label = "Quality Metrics - Pair Classification"
+                elif first_task.startswith("BITEXTMINING"):
+                    task_type_label = "Quality Metrics - Bitext Mining"
+                elif first_task.startswith("SUMMARIZATION"):
+                    task_type_label = "Quality Metrics - Summarization"
+                break
+
         columns = ConsoleTableColumnsCollection()
 
         for benchmark in report.benchmarks:
@@ -362,9 +302,30 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                         precision=4,
                     )
 
-                # Note: MTEB scores are now displayed in the dedicated
-                # MTEB Evaluation table via print_mteb_results_table()
+                # MTEB scores (convert 0-1 range to percentages for display)
+                if benchmark.metrics.quality.mteb_main_score is not None:
+                    columns.add_value(
+                        benchmark.metrics.quality.mteb_main_score * 100,
+                        group="MTEB",
+                        name="Main",
+                        units="%",
+                        precision=2,
+                    )
+
+                # Individual MTEB task scores
+                if benchmark.metrics.quality.mteb_task_scores:
+                    for (
+                        task_name,
+                        score,
+                    ) in sorted(benchmark.metrics.quality.mteb_task_scores.items()):
+                        columns.add_value(
+                            score * 100,
+                            group="MTEB Tasks",
+                            name=task_name.upper(),
+                            units="%",
+                            precision=2,
+                        )
 
         headers, values = columns.get_table_data()
         self.console.print("\n")
-        self.console.print_table(headers, values, title="Quality Metrics")
+        self.console.print_table(headers, values, title=task_type_label)

@@ -231,18 +231,35 @@ async def benchmark_embeddings(  # noqa: C901, PLR0912, PLR0915
             )
 
         try:
-            from guidellm.benchmark.quality import MTEBValidator
+            # Use RemoteMTEBValidator for remote endpoints, MTEBValidator for local
+            if args.target:
+                from guidellm.benchmark.quality import RemoteMTEBValidator
 
-            mteb_validator = MTEBValidator(
-                model_name=args.baseline_model or model,
-                task_names=args.mteb_tasks,
-            )
-            mteb_results = mteb_validator.run_evaluation()
+                remote_validator = RemoteMTEBValidator(
+                    base_url=args.target,
+                    model_name=model,
+                    task_names=args.mteb_tasks,
+                )
+                mteb_results = remote_validator.run_evaluation()
+            else:
+                from guidellm.benchmark.quality import MTEBValidator
+
+                local_validator = MTEBValidator(
+                    model_name=args.baseline_model or model,
+                    task_names=args.mteb_tasks,
+                )
+                mteb_results = local_validator.run_evaluation()
 
             if console:
+                # Format scores as percentages
+                main_score_pct = mteb_results["mteb_main_score"] * 100
+                task_scores_str = ", ".join(
+                    f"{task}: {score * 100:.2f}%"
+                    for task, score in mteb_results["mteb_task_scores"].items()
+                )
                 console.print_update(
                     title="MTEB evaluation complete",
-                    details=f"Main score: {mteb_results['mteb_main_score']:.4f}",
+                    details=f"Main score: {main_score_pct:.2f}% ({task_scores_str})",
                     status="success",
                 )
         except ImportError:

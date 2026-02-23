@@ -269,15 +269,29 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                         precision=4,
                     )
 
-                # MTEB main score
+                # MTEB scores (convert 0-1 range to percentages for display)
                 if benchmark.metrics.quality.mteb_main_score is not None:
                     columns.add_value(
-                        benchmark.metrics.quality.mteb_main_score,
+                        benchmark.metrics.quality.mteb_main_score * 100,
                         group="MTEB",
                         name="Main",
-                        units="Score",
-                        precision=4,
+                        units="%",
+                        precision=2,
                     )
+
+                # Individual MTEB task scores
+                if benchmark.metrics.quality.mteb_task_scores:
+                    for (
+                        task_name,
+                        score,
+                    ) in benchmark.metrics.quality.mteb_task_scores.items():
+                        columns.add_value(
+                            score * 100,
+                            group="MTEB Tasks",
+                            name=task_name,
+                            units="%",
+                            precision=2,
+                        )
 
         headers, values = columns.get_table_data()
         self.console.print("\n")

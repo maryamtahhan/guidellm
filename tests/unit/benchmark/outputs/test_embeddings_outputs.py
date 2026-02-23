@@ -116,8 +116,8 @@ def sample_benchmark() -> EmbeddingsBenchmark:
             incomplete=None,
             total=None,
         ),
-        mteb_main_score=75.5,
-        mteb_task_scores={"STS12": 72.3, "STS13": 78.1},
+        mteb_main_score=0.755,
+        mteb_task_scores={"STS12": 0.723, "STS13": 0.781},
     )
 
     # Create metrics

@@ -49,9 +49,9 @@ for task, score in results['mteb_task_scores'].items():
 #### Example Output
 
 ```
-MTEB Main Score: 0.7556
-  STS12: 0.6702
-  STS13: 0.8409
+MTEB Main Score: 75.56%
+  STS12: 67.02%
+  STS13: 84.09%
 ```
 
 ### Local Model Evaluation
@@ -115,35 +115,43 @@ tasks = RemoteMTEBValidator.get_recommended_tasks("retrieval")
 
 ## Understanding MTEB Scores
 
-MTEB scores range from 0 to 100, representing the percentage of similarity between predicted and ground truth pairs.
+**Important**: MTEB returns scores in the 0-1 range (e.g., 0.7556), which represent percentages (75.56%). guidellm automatically converts these to percentages for display.
+
+### Score Scale
+
+- **API Returns**: Values from 0.0 to 1.0 (e.g., `0.7556`)
+- **Display Format**: Percentages from 0% to 100% (e.g., `75.56%`)
+- **Meaning**: Percentage of similarity between predicted and ground truth pairs
 
 ### Score Interpretation
 
 | Score Range | Quality Level | Description                             |
 | ----------- | ------------- | --------------------------------------- |
-| 90-100      | Excellent     | State-of-the-art performance            |
-| 80-90       | Very Good     | Production-ready for most applications  |
-| 70-80       | Good          | Suitable for general use cases          |
-| 60-70       | Acceptable    | May need improvement for critical tasks |
-| \<60        | Poor          | Investigate model or configuration      |
+| 90-100%     | Excellent     | State-of-the-art performance            |
+| 80-90%      | Very Good     | Production-ready for most applications  |
+| 70-80%      | Good          | Suitable for general use cases          |
+| 60-70%      | Acceptable    | May need improvement for critical tasks |
+| \<60%       | Poor          | Investigate model or configuration      |
 
 ### Example Analysis
 
 ```python
-# Sample results
+# Sample results from API (0-1 scale)
 results = {
-    'mteb_main_score': 75.56,
+    'mteb_main_score': 0.7556,  # Returned as 0-1
     'mteb_task_scores': {
-        'STS12': 67.02,  # Moderate performance
-        'STS13': 84.09,  # Strong performance
+        'STS12': 0.6702,  # Returned as 0-1
+        'STS13': 0.8409,  # Returned as 0-1
     }
 }
 
-# Interpretation:
-# - Overall good quality (75.56) suitable for production
-# - Strong on STS13 (semantic similarity)
-# - Moderate on STS12 (may vary by dataset characteristics)
+# Interpretation (convert to percentages):
+# - Overall good quality (75.56%) suitable for production
+# - Strong on STS13 (84.09% - semantic similarity)
+# - Moderate on STS12 (67.02% - may vary by dataset characteristics)
 ```
+
+**Note**: guidellm automatically displays scores as percentages in console/CSV/HTML outputs for better readability, but the underlying API values remain in 0-1 range.
 
 ## Integration with vLLM
 

@@ -126,17 +126,14 @@ class SchedulerMetrics(StandardBaseDict):
                 accumulator.scheduler_metrics.queued_time_sum / num_requests
             )
             resolve_start_delay_avg = (
-                accumulator.scheduler_metrics.resolve_start_delay_sum
-                / num_requests
+                accumulator.scheduler_metrics.resolve_start_delay_sum / num_requests
             )
             resolve_targeted_start_delay_avg = (
-                accumulator.scheduler_metrics
-                .resolve_targeted_start_delay_sum
+                accumulator.scheduler_metrics.resolve_targeted_start_delay_sum
                 / num_requests
             )
             request_start_delay_avg = (
-                accumulator.scheduler_metrics.request_start_delay_sum
-                / num_requests
+                accumulator.scheduler_metrics.request_start_delay_sum / num_requests
             )
             resolve_time_avg = (
                 accumulator.scheduler_metrics.resolve_time_sum / num_requests
@@ -200,14 +197,10 @@ class EmbeddingsMetrics(StandardBaseDict):
         description="Total requests by status: successful, incomplete, errored, total"
     )
     requests_per_second: StatusDistributionSummary = Field(
-        description=(
-            "Requests per second distribution across measurement period"
-        )
+        description=("Requests per second distribution across measurement period")
     )
     request_concurrency: StatusDistributionSummary = Field(
-        description=(
-            "Concurrent requests distribution throughout execution"
-        )
+        description=("Concurrent requests distribution throughout execution")
     )
     request_latency: StatusDistributionSummary = Field(
         description="Request latency distribution (seconds)"
@@ -216,8 +209,7 @@ class EmbeddingsMetrics(StandardBaseDict):
     # Input token metrics (no output tokens for embeddings)
     input_tokens_count: StatusBreakdown[int, int, int, int] = Field(
         description=(
-            "Total input tokens by status: successful, incomplete, "
-            "errored, total"
+            "Total input tokens by status: successful, incomplete, errored, total"
         )
     )
     input_tokens_per_second: StatusDistributionSummary = Field(
@@ -254,8 +246,7 @@ class EmbeddingsMetrics(StandardBaseDict):
     encoding_format_breakdown: dict[str, int] = Field(
         default_factory=dict,
         description=(
-            "Request count by encoding format (e.g., "
-            "{'float': 50, 'base64': 0})"
+            "Request count by encoding format (e.g., {'float': 50, 'base64': 0})"
         ),
     )
 
@@ -318,22 +309,24 @@ class EmbeddingsMetrics(StandardBaseDict):
             errored = accumulator.requests.errored
         else:
             successful = [
-                req for req in accumulator.requests.successful
+                req
+                for req in accumulator.requests.successful
                 if start_time <= req.request_end_time <= end_time
             ]
             incomplete = [
-                req for req in accumulator.requests.incomplete
+                req
+                for req in accumulator.requests.incomplete
                 if start_time <= req.request_end_time <= end_time
             ]
             errored = [
-                req for req in accumulator.requests.errored
+                req
+                for req in accumulator.requests.errored
                 if start_time <= req.request_end_time <= end_time
             ]
 
         # Compile distribution summaries
         requests_per_second = (
-            StatusDistributionSummary
-            .rate_distribution_from_timings_function(
+            StatusDistributionSummary.rate_distribution_from_timings_function(
                 function=lambda req: req.request_end_time,
                 successful=successful,
                 incomplete=incomplete,
@@ -344,8 +337,7 @@ class EmbeddingsMetrics(StandardBaseDict):
         )
 
         request_concurrency = (
-            StatusDistributionSummary
-            .concurrency_distribution_from_timings_function(
+            StatusDistributionSummary.concurrency_distribution_from_timings_function(
                 function=lambda req: (
                     (req.request_start_time, req.request_end_time)
                     if req.request_start_time is not None
@@ -379,8 +371,7 @@ class EmbeddingsMetrics(StandardBaseDict):
         )
 
         input_tokens_per_second = (
-            StatusDistributionSummary
-            .rate_distribution_from_timings_function(
+            StatusDistributionSummary.rate_distribution_from_timings_function(
                 function=lambda req: req.input_tokens_timing,
                 successful=successful,
                 incomplete=incomplete,

@@ -114,9 +114,7 @@ class TestEmbeddingsRequestStats:
 
         # Compute expected properties
         expected_latency = (
-            request_end - request_start
-            if request_start is not None
-            else None
+            request_end - request_start if request_start is not None else None
         )
 
         expected: dict[str, Any] = {

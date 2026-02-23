@@ -33,8 +33,15 @@ def create_percentiles(p50=0.5) -> Percentiles:
 
 
 def create_distribution_summary(
-    mean=0.5, median=0.5, mode=0.5, variance=0.01, std_dev=0.1,
-    min_val=0.1, max_val=1.0, count=100, total_sum=50.0
+    mean=0.5,
+    median=0.5,
+    mode=0.5,
+    variance=0.01,
+    std_dev=0.1,
+    min_val=0.1,
+    max_val=1.0,
+    count=100,
+    total_sum=50.0,
 ) -> DistributionSummary:
     """Helper to create DistributionSummary with all required fields."""
     return DistributionSummary(
@@ -96,9 +103,7 @@ class TestEmbeddingsQualityMetrics:
             total=None,
         )
 
-        metrics = EmbeddingsQualityMetrics(
-            baseline_cosine_similarity=status_dist
-        )
+        metrics = EmbeddingsQualityMetrics(baseline_cosine_similarity=status_dist)
         assert metrics.baseline_cosine_similarity is not None
         assert metrics.baseline_cosine_similarity.successful.mean == 0.98
 
@@ -332,18 +337,12 @@ class TestEmbeddingsMetrics:
 
         dumped = metrics.model_dump()
         rebuilt = EmbeddingsMetrics.model_validate(dumped)
-        assert (
-            rebuilt.request_totals.successful
-            == metrics.request_totals.successful
-        )
+        assert rebuilt.request_totals.successful == metrics.request_totals.successful
         assert (
             rebuilt.input_tokens_count.successful
             == metrics.input_tokens_count.successful
         )
-        assert (
-            rebuilt.encoding_format_breakdown
-            == metrics.encoding_format_breakdown
-        )
+        assert rebuilt.encoding_format_breakdown == metrics.encoding_format_breakdown
 
     @pytest.mark.regression
     def test_no_output_tokens(self):

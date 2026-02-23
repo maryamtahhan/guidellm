@@ -71,8 +71,7 @@ class EmbeddingsBenchmarkerCSV(EmbeddingsBenchmarkerOutput):
     output_path: Path = Field(
         default_factory=lambda: Path.cwd(),
         description=(
-            "Path where the CSV file will be saved, defaults to current "
-            "directory"
+            "Path where the CSV file will be saved, defaults to current directory"
         ),
     )
 
@@ -113,9 +112,7 @@ class EmbeddingsBenchmarkerCSV(EmbeddingsBenchmarkerOutput):
                 self._add_quality_metrics(
                     benchmark, benchmark_headers, benchmark_values
                 )
-                self._add_scheduler_info(
-                    benchmark, benchmark_headers, benchmark_values
-                )
+                self._add_scheduler_info(benchmark, benchmark_headers, benchmark_values)
                 self._add_runtime_info(report, benchmark_headers, benchmark_values)
 
                 if not headers:
@@ -128,9 +125,7 @@ class EmbeddingsBenchmarkerCSV(EmbeddingsBenchmarkerOutput):
 
         return output_path
 
-    def _write_multirow_header(
-        self, writer: _writer, headers: list[list[str]]
-    ) -> None:
+    def _write_multirow_header(self, writer: _writer, headers: list[list[str]]) -> None:
         """
         Write multi-row header to CSV file.
 
@@ -382,12 +377,8 @@ class EmbeddingsBenchmarkerCSV(EmbeddingsBenchmarkerOutput):
 
         # P95
         headers.append([group, metric_name, "P95"])
-        values.append(
-            successful_stats.percentiles.p95 if successful_stats else 0
-        )
+        values.append(successful_stats.percentiles.p95 if successful_stats else 0)
 
         # P99
         headers.append([group, metric_name, "P99"])
-        values.append(
-            successful_stats.percentiles.p99 if successful_stats else 0
-        )
+        values.append(successful_stats.percentiles.p99 if successful_stats else 0)

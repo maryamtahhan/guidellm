@@ -475,9 +475,7 @@ def _build_benchmarks(benchmarks: list[GenerativeBenchmark]) -> list[dict[str, A
                     else 0.0
                 ),
                 "itl": get_dist_summary(bm.metrics.inter_token_latency_ms.successful),
-                "ttft": get_dist_summary(
-                    bm.metrics.time_to_first_token_ms.successful
-                ),
+                "ttft": get_dist_summary(bm.metrics.time_to_first_token_ms.successful),
                 "throughput": get_dist_summary(
                     bm.metrics.output_tokens_per_second.successful
                 ),

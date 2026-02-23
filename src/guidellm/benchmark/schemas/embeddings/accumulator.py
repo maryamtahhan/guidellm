@@ -345,9 +345,7 @@ class SchedulerMetricsAccumulator(StandardBaseModel):
     request_start_delay_sum: float = Field(
         description="Total delay from resolve to request start", default=0.0
     )
-    resolve_time_sum: float = Field(
-        description="Total resolution time", default=0.0
-    )
+    resolve_time_sum: float = Field(description="Total resolution time", default=0.0)
 
     def update_estimate(
         self, scheduler_state: SchedulerState, stats: EmbeddingsRequestStats
@@ -393,9 +391,7 @@ class SchedulerMetricsAccumulator(StandardBaseModel):
             self.request_start_delay.update_estimate(value=request_start_delay_val)
 
         if timings.targeted_start is not None and timings.request_start is not None:
-            request_targeted_delay_val = (
-                timings.request_start - timings.targeted_start
-            )
+            request_targeted_delay_val = timings.request_start - timings.targeted_start
             self.request_targeted_start_delay.update_estimate(
                 value=request_targeted_delay_val
             )
@@ -573,7 +569,7 @@ class EmbeddingsBenchmarkAccumulator(
     _sampling_counts: dict[str, int] = {}
     _max_samples: int = 1000
 
-    def update_estimate(  # noqa: C901, PLR0912
+    def update_estimate(  # noqa: C901, PLR0912, PLR0915
         self,
         response: GenerationResponse | None,
         request: GenerationRequest | MultiTurnRequestT[GenerationRequest],
@@ -645,7 +641,7 @@ class EmbeddingsBenchmarkAccumulator(
                 request_args = json.loads(response.request_args)
                 if "body" in request_args and "encoding_format" in request_args["body"]:
                     encoding_format = request_args["body"]["encoding_format"]
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S110
                 pass
 
         if encoding_format:

@@ -134,9 +134,7 @@ def sample_benchmark() -> EmbeddingsBenchmark:
             ),
             errored=None,
             incomplete=None,
-            total=create_distribution_summary(
-                mean=20.0, count=10, total_sum=200.0
-            ),
+            total=create_distribution_summary(mean=20.0, count=10, total_sum=200.0),
         ),
         request_concurrency=StatusDistributionSummary(
             successful=create_distribution_summary(mean=2.0, count=10, total_sum=20.0),
@@ -274,9 +272,7 @@ class TestEmbeddingsBenchmarkerSerialized:
 
         # Test with Path object
         path_obj = Path("/tmp/test.json")  # noqa: S108
-        kwargs = EmbeddingsBenchmarkerSerialized.validated_kwargs(
-            output_path=path_obj
-        )
+        kwargs = EmbeddingsBenchmarkerSerialized.validated_kwargs(output_path=path_obj)
         assert kwargs["output_path"] == path_obj
 
         # Test with None
@@ -347,9 +343,7 @@ class TestEmbeddingsBenchmarkerCSV:
         from guidellm.benchmark.outputs.output import EmbeddingsBenchmarkerOutput
 
         assert "csv" in EmbeddingsBenchmarkerOutput.registry
-        assert (
-            EmbeddingsBenchmarkerOutput.registry["csv"] == EmbeddingsBenchmarkerCSV
-        )
+        assert EmbeddingsBenchmarkerOutput.registry["csv"] == EmbeddingsBenchmarkerCSV
 
     @pytest.mark.smoke
     def test_default_filename(self):
@@ -460,9 +454,7 @@ class TestEmbeddingsBenchmarkerHTML:
         from guidellm.benchmark.outputs.output import EmbeddingsBenchmarkerOutput
 
         assert "html" in EmbeddingsBenchmarkerOutput.registry
-        assert (
-            EmbeddingsBenchmarkerOutput.registry["html"] == EmbeddingsBenchmarkerHTML
-        )
+        assert EmbeddingsBenchmarkerOutput.registry["html"] == EmbeddingsBenchmarkerHTML
 
     @pytest.mark.smoke
     def test_default_filename(self):
@@ -520,8 +512,7 @@ class TestEmbeddingsBenchmarkerHTML:
         # Check for embedded data and embeddings-specific content
         assert "uiApiData" in html_content
         assert (
-            "embeddings" in html_content.lower()
-            or "embedding" in html_content.lower()
+            "embeddings" in html_content.lower() or "embedding" in html_content.lower()
         )
 
     @pytest.mark.sanity
@@ -574,9 +565,7 @@ class TestEmbeddingsBenchmarkerConsole:
 
     @pytest.mark.sanity
     @pytest.mark.asyncio
-    async def test_console_finalize(
-        self, sample_report: EmbeddingsBenchmarksReport
-    ):
+    async def test_console_finalize(self, sample_report: EmbeddingsBenchmarksReport):
         """Test that console formatter finalize returns None (no file output)."""
         formatter = EmbeddingsBenchmarkerConsole()
 

@@ -74,8 +74,7 @@ class MTEBValidator:
             import mteb
         except ImportError as e:
             raise ImportError(
-                "mteb is required for MTEB evaluation. "
-                "Install with: pip install mteb"
+                "mteb is required for MTEB evaluation. Install with: pip install mteb"
             ) from e
 
         self.model_name = model_name
@@ -140,18 +139,14 @@ class MTEBValidator:
                 if isinstance(task_result, dict):
                     # Look for main_score in various possible locations
                     if "main_score" in task_result:
-                        task_scores[task_name] = float(
-                            task_result["main_score"]
-                        )
+                        task_scores[task_name] = float(task_result["main_score"])
                     elif "test" in task_result and isinstance(
                         task_result["test"], dict
                     ):
                         # Some tasks have test split with scores
                         test_result = task_result["test"]
                         if "main_score" in test_result:
-                            task_scores[task_name] = float(
-                                test_result["main_score"]
-                            )
+                            task_scores[task_name] = float(test_result["main_score"])
                         elif "cosine_spearman" in test_result:
                             # STS tasks use cosine_spearman as primary
                             task_scores[task_name] = float(
@@ -166,11 +161,7 @@ class MTEBValidator:
                             task_scores[task_name] = float(scores)
 
         # Compute main score as average across tasks
-        main_score = (
-            float(np.mean(list(task_scores.values())))
-            if task_scores
-            else 0.0
-        )
+        main_score = float(np.mean(list(task_scores.values()))) if task_scores else 0.0
 
         return {
             "mteb_main_score": main_score,

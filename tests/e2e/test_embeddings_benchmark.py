@@ -81,17 +81,13 @@ class EmbeddingsMockServer:
                 self.process.wait(timeout=5)
                 logger.info("Embeddings mock server stopped.")
             except subprocess.TimeoutExpired:
-                logger.warning(
-                    "Server did not terminate gracefully, killing it..."
-                )
+                logger.warning("Server did not terminate gracefully, killing it...")
                 self.process.kill()
                 try:
                     self.process.wait(timeout=2)
                     logger.info("Embeddings mock server killed.")
                 except subprocess.TimeoutExpired:
-                    logger.error(
-                        "Server did not stop even after kill signal"
-                    )
+                    logger.error("Server did not stop even after kill signal")
 
     def get_url(self) -> str:
         """Get the server URL."""
@@ -422,9 +418,7 @@ def test_embeddings_base64_encoding(
 
 @pytest.mark.timeout(60)
 @pytest.mark.sanity
-def test_embeddings_csv_output(
-    embeddings_server: EmbeddingsMockServer, tmp_path: Path
-):
+def test_embeddings_csv_output(embeddings_server: EmbeddingsMockServer, tmp_path: Path):
     """Test embeddings benchmark CSV output generation."""
     client = EmbeddingsClient(
         target=embeddings_server.get_url(),

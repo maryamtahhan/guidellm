@@ -503,8 +503,7 @@ class EmbeddingsRequest(BaseModel):
     encoding_format: Literal["float", "base64"] | None = Field(
         default="float",
         description=(
-            "Format for embedding output (float array or "
-            "base64-encoded binary)"
+            "Format for embedding output (float array or base64-encoded binary)"
         ),
     )
     dimensions: int | None = Field(
@@ -517,8 +516,7 @@ class EmbeddingsRequest(BaseModel):
     truncate_prompt_tokens: int | None = Field(
         default=None,
         description=(
-            "Maximum number of tokens to use from input "
-            "(truncates if exceeded)"
+            "Maximum number of tokens to use from input (truncates if exceeded)"
         ),
     )
     user: str | None = Field(

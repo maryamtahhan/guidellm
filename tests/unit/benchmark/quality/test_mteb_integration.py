@@ -34,9 +34,7 @@ class TestMTEBValidator:
     @pytest.mark.smoke
     def test_initialization_default_tasks(self):
         """Test initialization with default MTEB tasks."""
-        validator = MTEBValidator(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
+        validator = MTEBValidator(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
         assert validator.task_names == DEFAULT_MTEB_TASKS
 

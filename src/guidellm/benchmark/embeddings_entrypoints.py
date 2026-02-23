@@ -55,9 +55,7 @@ async def resolve_embeddings_output_formats(
         instances
     """
     console_step = (
-        console.print_update_step(title="Resolving output formats")
-        if console
-        else None
+        console.print_update_step(title="Resolving output formats") if console else None
     )
 
     resolved = EmbeddingsBenchmarkerOutput.resolve(
@@ -257,6 +255,7 @@ async def benchmark_embeddings(  # noqa: C901, PLR0912, PLR0915
 
     # Create report
     import time
+
     report = EmbeddingsBenchmarksReport(args=args)
     report.metadata.start_time = time.time()
 

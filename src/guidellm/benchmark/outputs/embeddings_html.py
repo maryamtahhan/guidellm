@@ -89,6 +89,7 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
 
         # Load HTML template from package resources
         import importlib.resources
+
         template_content = (
             importlib.resources.files("guidellm.benchmark.outputs")
             .joinpath("html_outputs/embeddings_template.html")
@@ -193,19 +194,10 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
             and quality.baseline_cosine_similarity.successful
         ):
             section["cosine_similarity"] = {
-                "mean": (
-                    quality.baseline_cosine_similarity.successful.mean
-                ),
-                "median": (
-                    quality.baseline_cosine_similarity.successful.median
-                ),
-                "std_dev": (
-                    quality.baseline_cosine_similarity.successful.std_dev
-                ),
-                "p95": (
-                    quality.baseline_cosine_similarity.successful
-                    .percentiles.p95
-                ),
+                "mean": (quality.baseline_cosine_similarity.successful.mean),
+                "median": (quality.baseline_cosine_similarity.successful.median),
+                "std_dev": (quality.baseline_cosine_similarity.successful.std_dev),
+                "p95": (quality.baseline_cosine_similarity.successful.percentiles.p95),
             }
 
         # MTEB scores
@@ -263,9 +255,7 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
                 },
                 # Quality metrics (if available)
                 "quality": (
-                    self._build_quality_data(benchmark)
-                    if metrics.quality
-                    else None
+                    self._build_quality_data(benchmark) if metrics.quality else None
                 ),
             }
 
@@ -309,9 +299,7 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
 
         return data if data else None
 
-    def _distribution_to_dict(
-        self, dist: Any
-    ) -> dict[str, float | None]:
+    def _distribution_to_dict(self, dist: Any) -> dict[str, float | None]:
         """
         Convert distribution summary to dictionary.
 
@@ -334,14 +322,8 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
             "median": dist.median,
             "std_dev": dist.std_dev,
             "p50": (
-                dist.percentiles.p50
-                if hasattr(dist, "percentiles")
-                else dist.median
+                dist.percentiles.p50 if hasattr(dist, "percentiles") else dist.median
             ),
-            "p95": (
-                dist.percentiles.p95 if hasattr(dist, "percentiles") else None
-            ),
-            "p99": (
-                dist.percentiles.p99 if hasattr(dist, "percentiles") else None
-            ),
+            "p95": (dist.percentiles.p95 if hasattr(dist, "percentiles") else None),
+            "p99": (dist.percentiles.p99 if hasattr(dist, "percentiles") else None),
         }

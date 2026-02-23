@@ -173,8 +173,7 @@ class BenchmarkEmbeddingsArgs(StandardBaseModel):
         default=None, description="Additional backend configuration arguments"
     )
     request_format: str | None = Field(
-        default=None,
-        description="Query format for backend operations"
+        default=None, description="Query format for backend operations"
     )
     model: str | None = Field(default=None, description="Model identifier for backend")
 

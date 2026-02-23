@@ -310,9 +310,11 @@ async def resolve_request_loader(
         collator_instance = data_collator
     elif data_collator == "embeddings":
         from guidellm.data import EmbeddingsRequestCollator
+
         collator_instance = EmbeddingsRequestCollator()
     else:  # default to "generative" or None
         from guidellm.data import GenerativeRequestCollator
+
         collator_instance = GenerativeRequestCollator()
 
     request_loader: DataLoader[GenerationRequest] = DataLoader(

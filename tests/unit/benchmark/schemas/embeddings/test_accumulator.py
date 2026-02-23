@@ -57,8 +57,7 @@ class TestEmbeddingsBenchmarkAccumulator:
         assert hasattr(EmbeddingsBenchmarkAccumulator, "model_fields")
         assert "quality" in EmbeddingsBenchmarkAccumulator.model_fields
         assert (
-            "encoding_format_breakdown"
-            in EmbeddingsBenchmarkAccumulator.model_fields
+            "encoding_format_breakdown" in EmbeddingsBenchmarkAccumulator.model_fields
         )
 
     @pytest.mark.smoke

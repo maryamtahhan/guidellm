@@ -89,7 +89,7 @@ The default tasks are optimized for quick evaluation:
 from guidellm.benchmark.quality import RemoteMTEBValidator
 
 tasks = RemoteMTEBValidator.get_recommended_tasks("sts")
-# Returns: ["STS12", "STS13", "STS14", "STS15", "STS16", "STSBenchmark", "SICKRelatedness"]
+# Returns: ["STS12", "STS13", "STS14", "STS15", "STS16", "STSBenchmark", "SICK-R"]
 ```
 
 #### Classification
@@ -224,7 +224,7 @@ validator = RemoteMTEBValidator(
         "STS12",
         "STS13",
         "STSBenchmark",
-        "SICKRelatedness"
+        "SICK-R"
     ]
 )
 

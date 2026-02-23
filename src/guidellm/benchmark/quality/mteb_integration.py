@@ -219,7 +219,7 @@ class MTEBValidator:
                 "STS15",
                 "STS16",
                 "STSBenchmark",
-                "SICKRelatedness",
+                "SICK-R",
             ],
             "classification": [
                 "AmazonCounterfactualClassification",

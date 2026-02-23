@@ -89,50 +89,50 @@
     "benchmarks": [
       {
         "strategy": "constant",
-        "rate": 10.0,
-        "duration": 5.0215349197387695,
+        "rate": 5.0,
+        "duration": 2.3310868740081787,
         "quality": null,
         "warmupDuration": 0.0,
         "cooldownDuration": 0.0,
         "requestCounts": {
-          "successful": 50,
+          "successful": 5,
           "incomplete": 0,
           "errored": 0,
-          "total": 50
+          "total": 5
         },
         "requestLatency": {
-          "mean": 0.11967744827270509,
-          "median": 0.11964988708496094,
-          "p50": 0.11964988708496094,
-          "p95": 0.12159276008605957,
-          "p99": 0.12530183792114258,
-          "stdDev": 0.0015748671990359927
+          "mean": 0.12218289375305177,
+          "median": 0.12092018127441406,
+          "p50": 0.12092018127441406,
+          "p95": 0.13012480735778809,
+          "p99": 0.13012480735778809,
+          "stdDev": 0.004146113358374906
         },
         "requestConcurrency": {
-          "mean": 1.1916420993337526,
-          "median": 1.0,
-          "p50": 1.0,
-          "p95": 2.0,
-          "p99": 2.0,
-          "stdDev": 0.39359294340308576
+          "mean": 0.2620728019950729,
+          "median": 0.0,
+          "p50": 0.0,
+          "p95": 1.0,
+          "p99": 1.0,
+          "stdDev": 0.4397620361622001
         },
         "requestsPerSecond": {
-          "mean": 9.957114866105744,
-          "median": 9.997149326659516,
-          "p50": 9.997149326659516,
-          "p95": 10.148475419435075,
-          "p99": 10.285829195021764,
-          "stdDev": 1.4844653850608949
+          "mean": 2.1449222059248134,
+          "median": 1.6530710051708917,
+          "p50": 1.6530710051708917,
+          "p95": 6.20769556375821,
+          "p99": 9.422840081685655,
+          "stdDev": 2.036614625708636
         },
         "inputTokens": {
-          "total": 5050,
+          "total": 49,
           "perSecond": {
-            "mean": 1029.833339119123,
-            "median": 1010.5719895131837,
-            "p50": 1010.5719895131837,
-            "p95": 1030.3134392610193,
-            "p99": 2050.885247171483,
-            "stdDev": 145.40375482224115
+            "mean": 22.156704745731577,
+            "median": 16.530710051708915,
+            "p50": 16.530710051708915,
+            "p95": 94.22840081685654,
+            "p99": 98.70971234111454,
+            "stdDev": 24.234477952442784
           }
         }
       }
@@ -141,54 +141,34 @@
       "model": "ibm-granite/granite-embedding-english-r2",
       "backend": "openai_http",
       "task": "embeddings",
-      "target": "http://ec2-98-87-13-106.compute-1.amazonaws.com:8000"
+      "target": "http://ec2-13-59-243-201.us-east-2.compute.amazonaws.com:8000"
     },
     "workloadDetails": {
       "prompts": {
         "samples": [
           {
-            "tokens": 101,
-            "sample": "Sample request c46e0e7b..."
+            "tokens": 10,
+            "sample": "Sample request 90888d45..."
           },
           {
-            "tokens": 101,
-            "sample": "Sample request 989a52ae..."
+            "tokens": 10,
+            "sample": "Sample request 61e20f25..."
           },
           {
-            "tokens": 101,
-            "sample": "Sample request a13ab1ec..."
+            "tokens": 9,
+            "sample": "Sample request 291c2165..."
           },
           {
-            "tokens": 101,
-            "sample": "Sample request cb677b35..."
+            "tokens": 10,
+            "sample": "Sample request 6cd1899b..."
           },
           {
-            "tokens": 101,
-            "sample": "Sample request bee3d421..."
-          },
-          {
-            "tokens": 101,
-            "sample": "Sample request a0d96a60..."
-          },
-          {
-            "tokens": 101,
-            "sample": "Sample request b3a15471..."
-          },
-          {
-            "tokens": 101,
-            "sample": "Sample request f32c87ff..."
-          },
-          {
-            "tokens": 101,
-            "sample": "Sample request f8ded062..."
-          },
-          {
-            "tokens": 101,
-            "sample": "Sample request 1c240f40..."
+            "tokens": 10,
+            "sample": "Sample request 40438824..."
           }
         ],
         "tokenStatistics": {
-          "mean": 101.0
+          "mean": 9.8
         }
       },
       "qualityValidation": null
@@ -216,43 +196,79 @@
                 const benchmark = data.benchmarks[0];
 
                 let metricsHTML = '';
-                if (benchmark.metrics) {
-                    const m = benchmark.metrics;
 
-                    if (m.requestTotals) {
-                        metricsHTML += `
-                            <div class="metric-card">
-                                <div class="metric-label">Total Requests</div>
-                                <div class="metric-value">${m.requestTotals.total || 'N/A'}</div>
-                            </div>
-                        `;
-                    }
+                // Request counts
+                if (benchmark.requestCounts) {
+                    metricsHTML += `
+                        <div class="metric-card">
+                            <div class="metric-label">Total Requests</div>
+                            <div class="metric-value">${benchmark.requestCounts.total || 'N/A'}</div>
+                        </div>
+                    `;
+                }
 
-                    if (m.requestLatency && m.requestLatency.total) {
-                        metricsHTML += `
-                            <div class="metric-card">
-                                <div class="metric-label">Median Latency (s)</div>
-                                <div class="metric-value">${m.requestLatency.total.median ? m.requestLatency.total.median.toFixed(3) : 'N/A'}</div>
-                            </div>
-                        `;
-                    }
+                // Request latency
+                if (benchmark.requestLatency) {
+                    metricsHTML += `
+                        <div class="metric-card">
+                            <div class="metric-label">Median Latency (s)</div>
+                            <div class="metric-value">${benchmark.requestLatency.median ? benchmark.requestLatency.median.toFixed(3) : 'N/A'}</div>
+                        </div>
+                    `;
+                }
 
-                    if (m.quality && m.quality.baselineCosineSimilarity && m.quality.baselineCosineSimilarity.total) {
+                // Requests per second
+                if (benchmark.requestsPerSecond) {
+                    metricsHTML += `
+                        <div class="metric-card">
+                            <div class="metric-label">Throughput (req/s)</div>
+                            <div class="metric-value">${benchmark.requestsPerSecond.median ? benchmark.requestsPerSecond.median.toFixed(2) : 'N/A'}</div>
+                        </div>
+                    `;
+                }
+
+                // Input tokens per second
+                if (benchmark.inputTokens && benchmark.inputTokens.perSecond) {
+                    metricsHTML += `
+                        <div class="metric-card">
+                            <div class="metric-label">Token Throughput (tok/s)</div>
+                            <div class="metric-value">${benchmark.inputTokens.perSecond.median ? benchmark.inputTokens.perSecond.median.toFixed(1) : 'N/A'}</div>
+                        </div>
+                    `;
+                }
+
+                // Quality metrics
+                if (benchmark.quality) {
+                    // Cosine similarity
+                    if (benchmark.quality.cosineSimilarity) {
                         metricsHTML += `
                             <div class="metric-card">
                                 <div class="metric-label">Cosine Similarity</div>
-                                <div class="metric-value">${m.quality.baselineCosineSimilarity.total.median ? m.quality.baselineCosineSimilarity.total.median.toFixed(3) : 'N/A'}</div>
+                                <div class="metric-value">${benchmark.quality.cosineSimilarity.median ? benchmark.quality.cosineSimilarity.median.toFixed(3) : 'N/A'}</div>
                             </div>
                         `;
                     }
 
-                    if (m.quality && m.quality.mtebMainScore !== undefined) {
+                    // MTEB main score
+                    if (benchmark.quality.mtebMainScore !== undefined) {
                         metricsHTML += `
                             <div class="metric-card">
-                                <div class="metric-label">MTEB Score</div>
-                                <div class="metric-value">${m.quality.mtebMainScore.toFixed(1)}</div>
+                                <div class="metric-label">MTEB Main Score</div>
+                                <div class="metric-value">${benchmark.quality.mtebMainScore.toFixed(2)}%</div>
                             </div>
                         `;
+
+                        // Add individual task scores
+                        if (benchmark.quality.mtebTaskScores) {
+                            for (const [task, score] of Object.entries(benchmark.quality.mtebTaskScores)) {
+                                metricsHTML += `
+                                    <div class="metric-card">
+                                        <div class="metric-label">MTEB ${task}</div>
+                                        <div class="metric-value">${score.toFixed(2)}%</div>
+                                    </div>
+                                `;
+                            }
+                        }
                     }
                 }
 

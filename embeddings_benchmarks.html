@@ -84,7 +84,118 @@
     </div>
 
     <script>
-        const uiApiData = {};
+        const uiApiData = {
+  "data": {
+    "benchmarks": [
+      {
+        "strategy": "constant",
+        "rate": 10.0,
+        "duration": 5.0215349197387695,
+        "quality": null,
+        "warmupDuration": 0.0,
+        "cooldownDuration": 0.0,
+        "requestCounts": {
+          "successful": 50,
+          "incomplete": 0,
+          "errored": 0,
+          "total": 50
+        },
+        "requestLatency": {
+          "mean": 0.11967744827270509,
+          "median": 0.11964988708496094,
+          "p50": 0.11964988708496094,
+          "p95": 0.12159276008605957,
+          "p99": 0.12530183792114258,
+          "stdDev": 0.0015748671990359927
+        },
+        "requestConcurrency": {
+          "mean": 1.1916420993337526,
+          "median": 1.0,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "stdDev": 0.39359294340308576
+        },
+        "requestsPerSecond": {
+          "mean": 9.957114866105744,
+          "median": 9.997149326659516,
+          "p50": 9.997149326659516,
+          "p95": 10.148475419435075,
+          "p99": 10.285829195021764,
+          "stdDev": 1.4844653850608949
+        },
+        "inputTokens": {
+          "total": 5050,
+          "perSecond": {
+            "mean": 1029.833339119123,
+            "median": 1010.5719895131837,
+            "p50": 1010.5719895131837,
+            "p95": 1030.3134392610193,
+            "p99": 2050.885247171483,
+            "stdDev": 145.40375482224115
+          }
+        }
+      }
+    ],
+    "runInfo": {
+      "model": "ibm-granite/granite-embedding-english-r2",
+      "backend": "openai_http",
+      "task": "embeddings",
+      "target": "http://ec2-98-87-13-106.compute-1.amazonaws.com:8000"
+    },
+    "workloadDetails": {
+      "prompts": {
+        "samples": [
+          {
+            "tokens": 101,
+            "sample": "Sample request c46e0e7b..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request 989a52ae..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request a13ab1ec..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request cb677b35..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request bee3d421..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request a0d96a60..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request b3a15471..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request f32c87ff..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request f8ded062..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request 1c240f40..."
+          }
+        ],
+        "tokenStatistics": {
+          "mean": 101.0
+        }
+      },
+      "qualityValidation": null
+    }
+  },
+  "guidelLmVersion": "0.6.0.dev1"
+};
 
         // Render the data
         function renderReport() {
@@ -138,22 +249,10 @@
                     if (m.quality && m.quality.mtebMainScore !== undefined) {
                         metricsHTML += `
                             <div class="metric-card">
-                                <div class="metric-label">MTEB Main Score</div>
-                                <div class="metric-value">${m.quality.mtebMainScore.toFixed(2)}%</div>
+                                <div class="metric-label">MTEB Score</div>
+                                <div class="metric-value">${m.quality.mtebMainScore.toFixed(1)}</div>
                             </div>
                         `;
-
-                        // Add individual task scores
-                        if (m.quality.mtebTaskScores) {
-                            for (const [task, score] of Object.entries(m.quality.mtebTaskScores)) {
-                                metricsHTML += `
-                                    <div class="metric-card">
-                                        <div class="metric-label">MTEB ${task}</div>
-                                        <div class="metric-value">${score.toFixed(2)}%</div>
-                                    </div>
-                                `;
-                            }
-                        }
                     }
                 }
 

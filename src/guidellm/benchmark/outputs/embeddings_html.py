@@ -200,11 +200,15 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
                 "p95": (quality.baseline_cosine_similarity.successful.percentiles.p95),
             }
 
-        # MTEB scores
+        # MTEB scores (convert to percentages for display)
         if quality.mteb_main_score is not None:
             section["mteb"] = {
-                "main_score": quality.mteb_main_score,
-                "task_scores": quality.mteb_task_scores or {},
+                "main_score": quality.mteb_main_score * 100,
+                "task_scores": (
+                    {k: v * 100 for k, v in quality.mteb_task_scores.items()}
+                    if quality.mteb_task_scores
+                    else {}
+                ),
             }
 
         return section if section else None
@@ -292,10 +296,12 @@ class EmbeddingsBenchmarkerHTML(EmbeddingsBenchmarkerOutput):
             )
 
         if quality.mteb_main_score is not None:
-            data["mteb_main_score"] = quality.mteb_main_score
+            data["mteb_main_score"] = quality.mteb_main_score * 100
 
         if quality.mteb_task_scores:
-            data["mteb_task_scores"] = quality.mteb_task_scores
+            data["mteb_task_scores"] = {
+                k: v * 100 for k, v in quality.mteb_task_scores.items()
+            }
 
         return data if data else None
 

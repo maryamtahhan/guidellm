@@ -238,29 +238,8 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         if not has_quality:
             return
 
-        # Determine task type label from first benchmark with MTEB scores
+        # Always use "Quality Metrics - MTEB Evaluation" as title
         task_type_label = "Quality Metrics - MTEB Evaluation"
-        for benchmark in report.benchmarks:
-            if (
-                benchmark.metrics.quality
-                and benchmark.metrics.quality.mteb_task_scores
-            ):
-                # Get unique categories
-                categories = set()
-                for task_name in benchmark.metrics.quality.mteb_task_scores.keys():
-                    category = self._get_mteb_task_category(task_name)
-                    categories.add(category)
-
-                # If only one category, show it in the title
-                if len(categories) == 1:
-                    category = categories.pop()
-                    if category == "STS":
-                        task_type_label = (
-                            "Quality Metrics - STS (Semantic Textual Similarity)"
-                        )
-                    else:
-                        task_type_label = f"Quality Metrics - {category}"
-                break
 
         columns = ConsoleTableColumnsCollection()
 
@@ -303,17 +282,25 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                         precision=2,
                     )
 
-                # Individual MTEB task scores - grouped by category
+                # MTEB category averages
                 if benchmark.metrics.quality.mteb_task_scores:
-                    for task_name, score in sorted(
-                        benchmark.metrics.quality.mteb_task_scores.items()
-                    ):
-                        # Get human-readable category for this task
+                    # Group tasks by category and calculate averages
+                    category_scores: dict[str, list[float]] = {}
+                    for task_name, score in benchmark.metrics.quality.mteb_task_scores.items():
                         category = self._get_mteb_task_category(task_name)
+                        if category not in category_scores:
+                            category_scores[category] = []
+                        category_scores[category].append(score * 100)
+
+                    # Add average score for each category
+                    for category in sorted(category_scores.keys()):
+                        avg_score = sum(category_scores[category]) / len(
+                            category_scores[category]
+                        )
                         columns.add_value(
-                            score * 100,
-                            group=category,
-                            name=task_name.upper(),
+                            avg_score,
+                            group="MTEB Tasks",
+                            name=category,
                             units="%",
                             precision=2,
                         )

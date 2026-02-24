@@ -326,9 +326,12 @@ async def benchmark_embeddings(  # noqa: C901, PLR0912, PLR0915
         output_result = await output.finalize(report)
         output_format_results[key] = output_result
 
-    # Print console output
-    if console:
+    # Print console output (only if not already handled by output_formats)
+    if console and "console" not in output_formats:
         await EmbeddingsBenchmarkerConsole(console=console).finalize(report)
+
+    # Print completion message
+    if console:
         console.print("\n\n")
         console.print_update(
             title=(

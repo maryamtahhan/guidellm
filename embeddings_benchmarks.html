@@ -283,50 +283,59 @@
     "benchmarks": [
       {
         "strategy": "constant",
-        "rate": 5.0,
-        "duration": 2.3310868740081787,
-        "quality": null,
+        "rate": 10.0,
+        "duration": 10.018609762191772,
+        "quality": {
+          "mtebMainScore": 78.02201388659967,
+          "mtebTaskScores": {
+            "sts12": 67.01627512889488,
+            "sts13": 84.09007323346108,
+            "sts14": 74.76396795246741,
+            "sts15": 85.37341181977862,
+            "sts16": 78.86634129839636
+          }
+        },
         "warmupDuration": 0.0,
         "cooldownDuration": 0.0,
         "requestCounts": {
-          "successful": 5,
+          "successful": 100,
           "incomplete": 0,
           "errored": 0,
-          "total": 5
+          "total": 100
         },
         "requestLatency": {
-          "mean": 0.12218289375305177,
-          "median": 0.12092018127441406,
-          "p50": 0.12092018127441406,
-          "p95": 0.13012480735778809,
-          "p99": 0.13012480735778809,
-          "stdDev": 0.004146113358374906
+          "mean": 0.12050391197204591,
+          "median": 0.12050485610961914,
+          "p50": 0.12050485610961914,
+          "p95": 0.1223611831665039,
+          "p99": 0.12378501892089844,
+          "stdDev": 0.0011505122891470904
         },
         "requestConcurrency": {
-          "mean": 0.2620728019950729,
-          "median": 0.0,
-          "p50": 0.0,
-          "p95": 1.0,
-          "p99": 1.0,
-          "stdDev": 0.4397620361622001
+          "mean": 1.2028007361540674,
+          "median": 1.0,
+          "p50": 1.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "stdDev": 0.40208531130773195
         },
         "requestsPerSecond": {
-          "mean": 2.1449222059248134,
-          "median": 1.6530710051708917,
-          "p50": 1.6530710051708917,
-          "p95": 6.20769556375821,
-          "p99": 9.422840081685655,
-          "stdDev": 2.036614625708636
+          "mean": 9.981424805802897,
+          "median": 10.01218371049365,
+          "p50": 10.01218371049365,
+          "p95": 10.17008069522036,
+          "p99": 10.31953804100452,
+          "stdDev": 1.0357339871087055
         },
         "inputTokens": {
-          "total": 49,
+          "total": 10100,
           "perSecond": {
-            "mean": 22.156704745731577,
-            "median": 16.530710051708915,
-            "p50": 16.530710051708915,
-            "p95": 94.22840081685654,
-            "p99": 98.70971234111454,
-            "stdDev": 24.234477952442784
+            "mean": 1020.4758093285177,
+            "median": 1011.3657511746056,
+            "p50": 1011.3657511746056,
+            "p95": 1027.1781502172564,
+            "p99": 1042.2733421414564,
+            "stdDev": 105.6537140979227
           }
         }
       }
@@ -335,37 +344,68 @@
       "model": "ibm-granite/granite-embedding-english-r2",
       "backend": "openai_http",
       "task": "embeddings",
-      "target": "http://ec2-13-59-243-201.us-east-2.compute.amazonaws.com:8000"
+      "target": "http://ec2-3-226-251-41.compute-1.amazonaws.com:8000"
     },
     "workloadDetails": {
       "prompts": {
         "samples": [
           {
-            "tokens": 10,
-            "sample": "Sample request 90888d45..."
+            "tokens": 101,
+            "sample": "Sample request 726bb92a..."
           },
           {
-            "tokens": 10,
-            "sample": "Sample request 61e20f25..."
+            "tokens": 101,
+            "sample": "Sample request 155bc4e5..."
           },
           {
-            "tokens": 9,
-            "sample": "Sample request 291c2165..."
+            "tokens": 101,
+            "sample": "Sample request f240cb17..."
           },
           {
-            "tokens": 10,
-            "sample": "Sample request 6cd1899b..."
+            "tokens": 101,
+            "sample": "Sample request 647b3a80..."
           },
           {
-            "tokens": 10,
-            "sample": "Sample request 40438824..."
+            "tokens": 101,
+            "sample": "Sample request 70fe014c..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request 544edb81..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request 76ae29c5..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request f0198cf4..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request 09c121fa..."
+          },
+          {
+            "tokens": 101,
+            "sample": "Sample request c2a314fe..."
           }
         ],
         "tokenStatistics": {
-          "mean": 9.8
+          "mean": 101.0
         }
       },
-      "qualityValidation": null
+      "qualityValidation": {
+        "mteb": {
+          "mainScore": 78.02201388659967,
+          "taskScores": {
+            "sts12": 67.01627512889488,
+            "sts13": 84.09007323346108,
+            "sts14": 74.76396795246741,
+            "sts15": 85.37341181977862,
+            "sts16": 78.86634129839636
+          }
+        }
+      }
     }
   },
   "guidelLmVersion": "0.6.0.dev1"

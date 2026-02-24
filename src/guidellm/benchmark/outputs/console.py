@@ -25,7 +25,7 @@ from guidellm.utils import Console, safe_format_number, safe_format_timestamp
 __all__ = ["GenerativeBenchmarkerConsole"]
 
 
-StatTypesAlias = Literal["mean", "median", "p95"]
+StatTypesAlias = Literal["mean", "median", "p95", "p99"]
 
 
 @dataclass
@@ -180,6 +180,8 @@ class ConsoleTableColumnsCollection(dict[str, ConsoleTableColumn]):
             return "Mdn", stats.median if stats else None
         elif stat_type == "p95":
             return "p95", stats.percentiles.p95 if stats else None
+        elif stat_type == "p99":
+            return "p99", stats.percentiles.p99 if stats else None
         else:
             raise ValueError(f"Unsupported stat type: {stat_type}")
 

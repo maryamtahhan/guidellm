@@ -171,6 +171,7 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                 group="Request Latency",
                 name="Latency",
                 precision=3,
+                types=("mean", "median", "p95", "p99"),
             )
 
             # Request concurrency

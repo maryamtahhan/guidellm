@@ -97,6 +97,7 @@ guidellm automatically groups MTEB tasks by category and displays average scores
 ```
 
 **Categories**:
+
 - **Classification** - Text classification tasks
 - **Clustering** - Document clustering tasks
 - **Pair Classification** - Pairwise classification
@@ -110,6 +111,7 @@ guidellm automatically groups MTEB tasks by category and displays average scores
 ### Comprehensive English Task List
 
 #### Quick Evaluation (6 tasks, ~10 minutes)
+
 ```bash
 guidellm benchmark embeddings \
   --target http://localhost:8000 \
@@ -123,6 +125,7 @@ guidellm benchmark embeddings \
 ```
 
 #### Full Evaluation (13 tasks, ~30 minutes)
+
 ```bash
 guidellm benchmark embeddings \
   --target http://localhost:8000 \
@@ -138,16 +141,19 @@ guidellm benchmark embeddings \
 ### Recommended Tasks by Category
 
 #### Classification
+
 - `AmazonCounterfactualClassification` - Product review sentiment (English, German, Japanese)
 - `DBpediaClassification` - Wikipedia article classification
 - `FinancialPhrasebankClassification` - Financial news sentiment
 
 #### Clustering
+
 - `ArxivClusteringS2S` - Academic paper clustering
 - `BigPatentClustering` - Patent document clustering
 - `BiorxivClusteringP2P` - Biomedical paper clustering
 
 #### Retrieval
+
 - `ATLAStatutes` - Legal statute retrieval
 - `ArguAna` - Argument retrieval
 - `NFCorpus` - Medical information retrieval
@@ -155,6 +161,7 @@ guidellm benchmark embeddings \
 - `SciFact` - Scientific fact verification
 
 #### STS (Semantic Textual Similarity)
+
 - `STS12` - SemEval 2012 (news, europarl, video descriptions)
 - `STS13` - SemEval 2013 (news, headlines, FNWN)
 - `STS14` - SemEval 2014 (news, forum, Twitter)
@@ -164,6 +171,7 @@ guidellm benchmark embeddings \
 - `SICK-R` - Sentences Involving Compositional Knowledge
 
 #### Reranking
+
 - `AskUbuntuDupQuestions` - Duplicate question detection
 
 ## Understanding MTEB Scores

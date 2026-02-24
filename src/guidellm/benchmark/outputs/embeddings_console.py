@@ -224,7 +224,10 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         self.console.print("\n")
         self.console.print_table(headers, values, title="Server Throughput")
 
-    def print_quality_metrics_table(self, report: EmbeddingsBenchmarksReport):
+    def print_quality_metrics_table(  # noqa: C901
+        self,
+        report: EmbeddingsBenchmarksReport,
+    ):
         """
         Print the quality metrics table (if quality validation was enabled).
 
@@ -286,7 +289,8 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                 if benchmark.metrics.quality.mteb_task_scores:
                     # Group tasks by category and calculate averages
                     category_scores: dict[str, list[float]] = {}
-                    for task_name, score in benchmark.metrics.quality.mteb_task_scores.items():
+                    mteb_scores = benchmark.metrics.quality.mteb_task_scores
+                    for task_name, score in mteb_scores.items():
                         category = self._get_mteb_task_category(task_name)
                         if category not in category_scores:
                             category_scores[category] = []
@@ -309,7 +313,7 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         self.console.print("\n")
         self.console.print_table(headers, values, title=task_type_label)
 
-    def _get_mteb_task_category(self, task_name: str) -> str:
+    def _get_mteb_task_category(self, task_name: str) -> str:  # noqa: PLR0911
         """
         Get human-readable MTEB task category from task name.
 

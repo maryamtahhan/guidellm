@@ -134,7 +134,7 @@ guidellm benchmark embeddings \
   --max-requests 100 \
   --rate 10 \
   --enable-mteb \
-  --mteb-tasks "AmazonCounterfactualClassification,DBpediaClassification,ArxivClusteringS2S,BigPatentClustering,NFCorpus,ArguAna,STS12,STS13,STS14,STS15,STS16,STSBenchmark,SICK-R" \
+  --mteb-tasks "AmazonCounterfactualClassification,DBpediaClassification.v2,ArxivClusteringS2S,BigPatentClustering,NFCorpus,ArguAna,STS12,STS13,STS14,STS15,STS16,STSBenchmark,SICK-R" \
   --outputs html,csv,json
 ```
 
@@ -143,7 +143,7 @@ guidellm benchmark embeddings \
 #### Classification
 
 - `AmazonCounterfactualClassification` - Product review sentiment (English, German, Japanese)
-- `DBpediaClassification` - Wikipedia article classification
+- `DBpediaClassification.v2` - Wikipedia article classification (v2, recommended)
 - `FinancialPhrasebankClassification` - Financial news sentiment
 
 #### Clustering
@@ -173,6 +173,10 @@ guidellm benchmark embeddings \
 #### Reranking
 
 - `AskUbuntuDupQuestions` - Duplicate question detection
+
+### Dataset Versions
+
+Some MTEB datasets have multiple versions. When available, use the latest version (e.g., `DBpediaClassification.v2` instead of `DBpediaClassification`) to avoid deprecation warnings and ensure you're using the most up-to-date benchmark data. MTEB will display a warning if a newer version is recommended.
 
 ## Understanding MTEB Scores
 

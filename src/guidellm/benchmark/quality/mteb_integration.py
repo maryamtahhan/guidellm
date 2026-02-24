@@ -12,6 +12,7 @@ evaluation (via OpenAI-compatible API) following vLLM's testing patterns.
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import numpy as np
@@ -124,12 +125,19 @@ class MTEBValidator:
 
         # Run evaluation using modern mteb.evaluate() API
         # Following vLLM's pattern from pooling_mteb_test/mteb_embed_utils.py
-        results = self.mteb.evaluate(
-            self.model,
-            tasks,
-            cache=None,
-            show_progress_bar=(verbosity > 0),
-        )
+        # Suppress sklearn FutureWarnings from MTEB's internal classification models
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=FutureWarning,
+                message=".*n_jobs.*has no effect.*",
+            )
+            results = self.mteb.evaluate(
+                self.model,
+                tasks,
+                cache=None,
+                show_progress_bar=(verbosity > 0),
+            )
 
         # Extract scores from results
         # mteb.evaluate() returns a list of TaskResult objects
@@ -497,12 +505,19 @@ class RemoteMTEBValidator:
 
         # Run evaluation using modern mteb.evaluate() API
         # Following vLLM's pattern from pooling_mteb_test/mteb_embed_utils.py
-        results = self.mteb.evaluate(
-            self.encoder,
-            tasks,
-            cache=None,
-            show_progress_bar=(verbosity > 0),
-        )
+        # Suppress sklearn FutureWarnings from MTEB's internal classification models
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=FutureWarning,
+                message=".*n_jobs.*has no effect.*",
+            )
+            results = self.mteb.evaluate(
+                self.encoder,
+                tasks,
+                cache=None,
+                show_progress_bar=(verbosity > 0),
+            )
 
         # Extract scores from results
         # mteb.evaluate() returns a list of TaskResult objects

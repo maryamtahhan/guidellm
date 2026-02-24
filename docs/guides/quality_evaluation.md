@@ -81,37 +81,90 @@ The default tasks are optimized for quick evaluation:
 - `STS13` - Semantic Textual Similarity 2013
 - `STSBenchmark` - STS Benchmark dataset
 
+### Category-Based Results
+
+guidellm automatically groups MTEB tasks by category and displays average scores for each category, matching the MTEB leaderboard structure:
+
+```
+ℹ Quality Metrics - MTEB Evaluation
+|=========|=======|================|============|===========|======|
+| Bench   | MTEB  | MTEB Tasks                                     |
+| Strat   | Main  | Classification | Clustering | Retrieval | STS  |
+|         | %     | %              | %          | %         | %    |
+|---------|-------|----------------|------------|-----------|------|
+| const   | 75.2  | 68.5           | 72.1       | 78.9      | 76.3 |
+|=========|=======|================|============|===========|======|
+```
+
+**Categories**:
+- **Classification** - Text classification tasks
+- **Clustering** - Document clustering tasks
+- **Pair Classification** - Pairwise classification
+- **Reranking** - Search result reranking
+- **Instruction Reranking** - Instruction-following reranking
+- **Retrieval** - Information retrieval tasks
+- **STS** - Semantic Textual Similarity
+- **Bitext Mining** - Parallel sentence mining
+- **Multilabel Classification** - Multi-label classification
+
+### Comprehensive English Task List
+
+#### Quick Evaluation (6 tasks, ~10 minutes)
+```bash
+guidellm benchmark embeddings \
+  --target http://localhost:8000 \
+  --model your-embedding-model \
+  --data "prompt_tokens=100" \
+  --max-requests 50 \
+  --rate 10 \
+  --enable-mteb \
+  --mteb-tasks "AmazonCounterfactualClassification,ArxivClusteringS2S,NFCorpus,STS12,STS13,STS14" \
+  --outputs html,json
+```
+
+#### Full Evaluation (13 tasks, ~30 minutes)
+```bash
+guidellm benchmark embeddings \
+  --target http://localhost:8000 \
+  --model your-embedding-model \
+  --data "prompt_tokens=100" \
+  --max-requests 100 \
+  --rate 10 \
+  --enable-mteb \
+  --mteb-tasks "AmazonCounterfactualClassification,DBpediaClassification,ArxivClusteringS2S,BigPatentClustering,NFCorpus,ArguAna,STS12,STS13,STS14,STS15,STS16,STSBenchmark,SICK-R" \
+  --outputs html,csv,json
+```
+
 ### Recommended Tasks by Category
 
-#### Semantic Textual Similarity
-
-```python
-from guidellm.benchmark.quality import RemoteMTEBValidator
-
-tasks = RemoteMTEBValidator.get_recommended_tasks("sts")
-# Returns: ["STS12", "STS13", "STS14", "STS15", "STS16", "STSBenchmark", "SICK-R"]
-```
-
 #### Classification
-
-```python
-tasks = RemoteMTEBValidator.get_recommended_tasks("classification")
-# Returns tasks for text classification benchmarks
-```
+- `AmazonCounterfactualClassification` - Product review sentiment (English, German, Japanese)
+- `DBpediaClassification` - Wikipedia article classification
+- `FinancialPhrasebankClassification` - Financial news sentiment
 
 #### Clustering
-
-```python
-tasks = RemoteMTEBValidator.get_recommended_tasks("clustering")
-# Returns tasks for clustering benchmarks
-```
+- `ArxivClusteringS2S` - Academic paper clustering
+- `BigPatentClustering` - Patent document clustering
+- `BiorxivClusteringP2P` - Biomedical paper clustering
 
 #### Retrieval
+- `ATLAStatutes` - Legal statute retrieval
+- `ArguAna` - Argument retrieval
+- `NFCorpus` - Medical information retrieval
+- `TRECCOVID` - COVID-19 research retrieval
+- `SciFact` - Scientific fact verification
 
-```python
-tasks = RemoteMTEBValidator.get_recommended_tasks("retrieval")
-# Returns tasks for information retrieval benchmarks
-```
+#### STS (Semantic Textual Similarity)
+- `STS12` - SemEval 2012 (news, europarl, video descriptions)
+- `STS13` - SemEval 2013 (news, headlines, FNWN)
+- `STS14` - SemEval 2014 (news, forum, Twitter)
+- `STS15` - SemEval 2015 (forum, news, student answers)
+- `STS16` - SemEval 2016 (news, Q&A, plagiarism)
+- `STSBenchmark` - STS Benchmark (diverse sources)
+- `SICK-R` - Sentences Involving Compositional Knowledge
+
+#### Reranking
+- `AskUbuntuDupQuestions` - Duplicate question detection
 
 ## Understanding MTEB Scores
 

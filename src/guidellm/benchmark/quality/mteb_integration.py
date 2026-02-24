@@ -142,7 +142,7 @@ class MTEBValidator:
         # Extract scores from results
         # mteb.evaluate() returns a list of TaskResult objects
         task_scores = {}
-        for task_result in results:
+        for task_result in list(results):
             task_name = task_result.task_name
             # Get main score from the test split
             # Following vLLM's pattern: results[0].scores["test"][0]["main_score"]
@@ -513,7 +513,7 @@ class RemoteMTEBValidator:
                 message=".*n_jobs.*has no effect.*",
             )
             results = self.mteb.evaluate(
-                self.encoder,
+                self.encoder,  # type: ignore[arg-type]
                 tasks,
                 cache=None,
                 show_progress_bar=(verbosity > 0),
@@ -522,7 +522,7 @@ class RemoteMTEBValidator:
         # Extract scores from results
         # mteb.evaluate() returns a list of TaskResult objects
         task_scores = {}
-        for task_result in results:
+        for task_result in list(results):
             task_name = task_result.task_name
             # Get main score from the test split
             # Following vLLM's pattern: results[0].scores["test"][0]["main_score"]

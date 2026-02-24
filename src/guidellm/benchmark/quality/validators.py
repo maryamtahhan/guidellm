@@ -233,7 +233,10 @@ class EmbeddingsQualityValidator:
         for baseline_emb, target_emb in zip(
             baseline_embeddings, target_array, strict=False
         ):
-            sim = compute_cosine_similarity(baseline_emb, target_emb)
+            # Type cast for mypy - these are 1D arrays from iteration
+            baseline_vec: NDArray[np.float32] = baseline_emb  # type: ignore[assignment]
+            target_vec: NDArray[np.float32] = target_emb  # type: ignore[assignment]
+            sim = compute_cosine_similarity(baseline_vec, target_vec)
             similarities.append(sim)
 
         return similarities

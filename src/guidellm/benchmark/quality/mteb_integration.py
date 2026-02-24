@@ -140,9 +140,9 @@ class MTEBValidator:
             )
 
         # Extract scores from results
-        # mteb.evaluate() returns a list of TaskResult objects
+        # mteb.evaluate() returns a ModelResult that can be iterated
         task_scores = {}
-        for task_result in list(results):
+        for task_result in results:  # type: ignore[attr-defined]
             task_name = task_result.task_name
             # Get main score from the test split
             # Following vLLM's pattern: results[0].scores["test"][0]["main_score"]
@@ -520,9 +520,9 @@ class RemoteMTEBValidator:
             )
 
         # Extract scores from results
-        # mteb.evaluate() returns a list of TaskResult objects
+        # mteb.evaluate() returns a ModelResult that can be iterated
         task_scores = {}
-        for task_result in list(results):
+        for task_result in results:  # type: ignore[attr-defined]
             task_name = task_result.task_name
             # Get main score from the test split
             # Following vLLM's pattern: results[0].scores["test"][0]["main_score"]

@@ -239,36 +239,27 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
             return
 
         # Determine task type label from first benchmark with MTEB scores
-        task_type_label = "Quality Metrics"
+        task_type_label = "Quality Metrics - MTEB Evaluation"
         for benchmark in report.benchmarks:
             if (
                 benchmark.metrics.quality
                 and benchmark.metrics.quality.mteb_task_scores
             ):
-                # Get first task name to determine type
-                first_task = next(
-                    iter(benchmark.metrics.quality.mteb_task_scores.keys())
-                ).upper()
+                # Get unique categories
+                categories = set()
+                for task_name in benchmark.metrics.quality.mteb_task_scores.keys():
+                    category = self._get_mteb_task_category(task_name)
+                    categories.add(category)
 
-                # Map task prefixes to human-readable types
-                if first_task.startswith("STS") or first_task == "SICK-R":
-                    task_type_label = (
-                        "Quality Metrics - STS (Semantic Textual Similarity)"
-                    )
-                elif first_task.startswith("CLASSIFICATION"):
-                    task_type_label = "Quality Metrics - Classification"
-                elif first_task.startswith("CLUSTERING"):
-                    task_type_label = "Quality Metrics - Clustering"
-                elif first_task.startswith("RETRIEVAL"):
-                    task_type_label = "Quality Metrics - Retrieval"
-                elif first_task.startswith("RERANKING"):
-                    task_type_label = "Quality Metrics - Reranking"
-                elif first_task.startswith("PAIRCLASSIFICATION"):
-                    task_type_label = "Quality Metrics - Pair Classification"
-                elif first_task.startswith("BITEXTMINING"):
-                    task_type_label = "Quality Metrics - Bitext Mining"
-                elif first_task.startswith("SUMMARIZATION"):
-                    task_type_label = "Quality Metrics - Summarization"
+                # If only one category, show it in the title
+                if len(categories) == 1:
+                    category = categories.pop()
+                    if category == "STS":
+                        task_type_label = (
+                            "Quality Metrics - STS (Semantic Textual Similarity)"
+                        )
+                    else:
+                        task_type_label = f"Quality Metrics - {category}"
                 break
 
         columns = ConsoleTableColumnsCollection()
@@ -312,15 +303,16 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
                         precision=2,
                     )
 
-                # Individual MTEB task scores
+                # Individual MTEB task scores - grouped by category
                 if benchmark.metrics.quality.mteb_task_scores:
-                    for (
-                        task_name,
-                        score,
-                    ) in sorted(benchmark.metrics.quality.mteb_task_scores.items()):
+                    for task_name, score in sorted(
+                        benchmark.metrics.quality.mteb_task_scores.items()
+                    ):
+                        # Get human-readable category for this task
+                        category = self._get_mteb_task_category(task_name)
                         columns.add_value(
                             score * 100,
-                            group="MTEB Tasks",
+                            group=category,
                             name=task_name.upper(),
                             units="%",
                             precision=2,
@@ -329,3 +321,49 @@ class EmbeddingsBenchmarkerConsole(EmbeddingsBenchmarkerOutput):
         headers, values = columns.get_table_data()
         self.console.print("\n")
         self.console.print_table(headers, values, title=task_type_label)
+
+    def _get_mteb_task_category(self, task_name: str) -> str:
+        """
+        Get human-readable MTEB task category from task name.
+
+        :param task_name: MTEB task name
+        :return: Human-readable category name
+        """
+        task_upper = task_name.upper()
+
+        # STS tasks
+        if task_upper.startswith("STS") or task_upper == "SICK-R":
+            return "STS"
+
+        # Classification tasks
+        if "CLASSIFICATION" in task_upper:
+            if "PAIR" in task_upper:
+                return "Pair Classification"
+            if "MULTILABEL" in task_upper:
+                return "Multilabel Classification"
+            return "Classification"
+
+        # Clustering tasks
+        if "CLUSTERING" in task_upper:
+            return "Clustering"
+
+        # Retrieval tasks
+        if "RETRIEVAL" in task_upper or task_upper in [
+            "NFCORPUS",
+            "SCIFACT",
+            "TRECCOVID",
+        ]:
+            return "Retrieval"
+
+        # Reranking tasks
+        if "RERANK" in task_upper or "DUPQUESTIONS" in task_upper:
+            if "INSTRUCTION" in task_upper:
+                return "Instruction Reranking"
+            return "Reranking"
+
+        # Bitext Mining tasks
+        if "BITEXT" in task_upper or task_upper.startswith("TATOEBA"):
+            return "Bitext Mining"
+
+        # Default
+        return "Other"

@@ -219,9 +219,12 @@ class VLLMOfflineBackend(VLLMPythonBackend):
         self._shutting_down = True
 
         # Drain any remaining requests
+        batch: list[_BatchedRequest] = []
         async with self._batch_lock:
             if self._pending_batch:
-                await self._process_batch()
+                batch = self._take_pending_batch()
+        if batch:
+            await self._run_generate(batch)
 
         if self._processing_task is not None:
             self._processing_task.cancel()
@@ -327,18 +330,25 @@ class VLLMOfflineBackend(VLLMPythonBackend):
     # Batch processing
     # ------------------------------------------------------------------
 
-    async def _process_batch(self) -> None:
-        """Collect all pending requests and run ``LLM.generate()``.
+    def _take_pending_batch(self) -> list[_BatchedRequest]:
+        """Snapshot and clear ``_pending_batch``.
 
-        Must be called while holding ``_batch_lock``.  Results are
-        distributed back to callers via each ``_BatchedRequest.ready``
-        event.
+        Must be called while holding ``_batch_lock``.
         """
-        if not self._pending_batch:
-            return
-
         batch = list(self._pending_batch)
         self._pending_batch.clear()
+        return batch
+
+    async def _run_generate(
+        self, batch: list[_BatchedRequest]
+    ) -> None:
+        """Run ``LLM.generate()`` for *batch* and distribute results.
+
+        Does **not** hold ``_batch_lock`` — new requests can enqueue
+        while generation is in progress.
+        """
+        if not batch:
+            return
 
         # Build per-request generate inputs
         prompts: list[str | dict[str, Any]] = []
@@ -390,9 +400,12 @@ class VLLMOfflineBackend(VLLMPythonBackend):
 
     async def _maybe_process_batch(self) -> None:
         """Trigger batch processing if the batch is full."""
+        batch: list[_BatchedRequest] = []
         async with self._batch_lock:
             if len(self._pending_batch) >= self._args.batch_size:
-                await self._process_batch()
+                batch = self._take_pending_batch()
+        if batch:
+            await self._run_generate(batch)
 
     async def resolve(  # type: ignore[override, misc]
         self,
@@ -491,7 +504,8 @@ class VLLMOfflineBackend(VLLMPythonBackend):
                 async with self._batch_lock:
                     if not self._pending_batch:
                         return
-                    await self._process_batch()
+                    batch = self._take_pending_batch()
+                await self._run_generate(batch)
 
         # Only schedule one deferred flush at a time
         if self._processing_task is None or self._processing_task.done():

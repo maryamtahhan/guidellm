@@ -10,6 +10,7 @@ the standard GuideLLM scheduler lifecycle.
 from __future__ import annotations
 
 import asyncio
+import gc
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -175,30 +176,40 @@ class VLLMOfflineBackend(VLLMPythonBackend):
         Initialize the synchronous vLLM LLM engine.
 
         Runs engine construction in the default executor so the
-        event loop is not blocked during model loading.
+        event loop is not blocked during model loading.  If the
+        engine was already created (e.g. during validation) it is
+        reused — this avoids a costly teardown/recreate cycle that
+        causes CPU-affinity issues with vLLM's multiprocess executor.
 
         :raises RuntimeError: If backend is already initialised
         """
         if self._in_process:
             raise RuntimeError("Backend already started up for process.")
 
-        loop = asyncio.get_running_loop()
-        config = dict(self._args.vllm_config)
+        if self._llm is None:
+            loop = asyncio.get_running_loop()
+            config = dict(self._args.vllm_config)
 
-        engine_args = vllm.EngineArgs(  # type: ignore[attr-defined]
-            **config,
-        )
-        self._llm = await loop.run_in_executor(
-            None,
-            vllm.LLM.from_engine_args,  # type: ignore[attr-defined]
-            engine_args,
-        )
+            engine_args = vllm.EngineArgs(  # type: ignore[attr-defined]
+                **config,
+            )
+            self._llm = await loop.run_in_executor(
+                None,
+                vllm.LLM.from_engine_args,  # type: ignore[attr-defined]
+                engine_args,
+            )
         self._in_process = True
         self._shutting_down = False
 
     async def process_shutdown(self):
         """
         Drain pending batch and tear down the vLLM LLM engine.
+
+        The engine is kept alive so that a subsequent
+        ``process_startup()`` can reuse it without paying the
+        cost of destroying and recreating the multiprocess
+        executor (which causes CPU-affinity problems on CPU
+        backends).  Call ``destroy()`` for a full teardown.
 
         :raises RuntimeError: If backend was not properly initialised
         """
@@ -216,11 +227,14 @@ class VLLMOfflineBackend(VLLMPythonBackend):
             self._processing_task.cancel()
             self._processing_task = None
 
+        self._in_process = False
+
+    async def destroy(self):
+        """Release the vLLM engine and its child processes."""
         if self._llm is not None:
             del self._llm
             self._llm = None
-
-        self._in_process = False
+            gc.collect()
 
     async def validate(self):
         """
@@ -471,10 +485,13 @@ class VLLMOfflineBackend(VLLMPythonBackend):
         """
 
         async def _deferred_flush() -> None:
-            # Yield control so other requests can arrive
-            await asyncio.sleep(0)
-            async with self._batch_lock:
-                await self._process_batch()
+            while True:
+                # Yield control so other requests can arrive
+                await asyncio.sleep(0)
+                async with self._batch_lock:
+                    if not self._pending_batch:
+                        return
+                    await self._process_batch()
 
         # Only schedule one deferred flush at a time
         if self._processing_task is None or self._processing_task.done():
